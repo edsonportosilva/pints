@@ -330,7 +330,7 @@ class NestedEllipsoidSampler(pints.NestedSampler):
         d = np.sqrt(np.diag(e))
         d.shape = (ndims, 1)
 
-        for i in range(0, npts):
+        for i in range(npts):
             # scale points to a uniform distribution within unit hypersphere
             pnts[i, :] = fac[i] * pt[i, :]
             pnts[i, :] = np.dot(

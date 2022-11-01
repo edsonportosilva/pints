@@ -107,10 +107,10 @@ class TestDifferentialEvolutionMCMC(unittest.TestCase):
         # Repeated asks should return same point
         mcmc = pints.DifferentialEvolutionMCMC(n, x0)
         # Get into accepting state
-        for i in range(100):
+        for _ in range(100):
             mcmc.tell([self.log_posterior(x) for x in mcmc.ask()])
         x = mcmc.ask()
-        for i in range(10):
+        for _ in range(10):
             self.assertTrue(x is mcmc.ask())
 
         # Repeated tells should fail
@@ -125,13 +125,13 @@ class TestDifferentialEvolutionMCMC(unittest.TestCase):
         # Use uniform error
         mcmc = pints.DifferentialEvolutionMCMC(n, x0)
         mcmc.set_gaussian_error(False)
-        for i in range(10):
+        for _ in range(10):
             mcmc.tell([self.log_posterior(x) for x in mcmc.ask()])
 
         # Use absolute scaling
         mcmc = pints.DifferentialEvolutionMCMC(n, x0)
         mcmc.set_relative_scaling(False)
-        for i in range(10):
+        for _ in range(10):
             mcmc.tell([self.log_posterior(x) for x in mcmc.ask()])
 
     def test_set_hyper_parameters(self):

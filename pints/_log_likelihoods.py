@@ -83,7 +83,7 @@ class AR1LogLikelihood(pints.ProblemLogLikelihood):
     def __call__(self, x):
         m = 2 * self._no
         parameters = x[-m:]
-        rho = np.asarray(parameters[0::2])
+        rho = np.asarray(parameters[::2])
         sigma = np.asarray(parameters[1::2])
         if any(sigma <= 0):
             return -np.inf
@@ -163,7 +163,7 @@ class ARMA11LogLikelihood(pints.ProblemLogLikelihood):
     def __call__(self, x):
         m = 3 * self._no
         parameters = x[-m:]
-        rho = np.asarray(parameters[0::3])
+        rho = np.asarray(parameters[::3])
         phi = np.asarray(parameters[1::3])
         sigma = np.asarray(parameters[2::3])
         if any(sigma <= 0):
@@ -350,13 +350,10 @@ class ConstantAndMultiplicativeGaussianLogLikelihood(
         if np.any(np.asarray(sigma_tot) <= 0):
             return -np.inf
 
-        # Compute log-likelihood
-        # (inner sums over time points, outer sum over parameters)
-        log_likelihood = self._logn - np.sum(
+        return self._logn - np.sum(
             np.sum(np.log(sigma_tot), axis=0)
-            + 0.5 * np.sum(error**2 / sigma_tot**2, axis=0))
-
-        return log_likelihood
+            + 0.5 * np.sum(error**2 / sigma_tot**2, axis=0)
+        )
 
     def evaluateS1(self, parameters):
         r"""
@@ -869,7 +866,7 @@ class MultiplicativeGaussianLogLikelihood(pints.ProblemLogLikelihood):
     def __call__(self, x):
         # Get noise parameters
         noise_parameters = x[-self._np:]
-        eta = np.asarray(noise_parameters[0::2])
+        eta = np.asarray(noise_parameters[::2])
         sigma = np.asarray(noise_parameters[1::2])
 
         if any(sigma <= 0):
@@ -878,15 +875,16 @@ class MultiplicativeGaussianLogLikelihood(pints.ProblemLogLikelihood):
         # Evaluate function (n_times, n_output)
         function_values = self._problem.evaluate(x[:-self._np])
 
-        # Compute likelihood
-        log_likelihood = \
-            -self._logn - np.sum(
-                np.sum(np.log(function_values**eta * sigma), axis=0)
-                + 0.5 / sigma**2 * np.sum(
-                    (self._values - function_values)**2
-                    / function_values ** (2 * eta), axis=0))
-
-        return log_likelihood
+        return -self._logn - np.sum(
+            np.sum(np.log(function_values**eta * sigma), axis=0)
+            + 0.5
+            / sigma**2
+            * np.sum(
+                (self._values - function_values) ** 2
+                / function_values ** (2 * eta),
+                axis=0,
+            )
+        )
 
 
 class ScaledLogLikelihood(pints.ProblemLogLikelihood):
@@ -991,7 +989,7 @@ class StudentTLogLikelihood(pints.ProblemLogLikelihood):
 
         # Distribution parameters
         parameters = x[-m:]
-        nu = np.asarray(parameters[0::2])
+        nu = np.asarray(parameters[::2])
         sigma = np.asarray(parameters[1::2])
         if any(nu <= 0) or any(sigma <= 0):
             return -np.inf

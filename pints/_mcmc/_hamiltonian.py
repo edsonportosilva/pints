@@ -257,7 +257,7 @@ class HamiltonianMCMC(pints.SingleChainMCMC):
             )
         if len(a) == 1:
             step_size = np.repeat(step_size, self._n_parameters)
-        elif not len(step_size) == self._n_parameters:
+        elif len(step_size) != self._n_parameters:
             raise ValueError(
                 'Step size should either be of length 1 or equal to the' +
                 'number of parameters'

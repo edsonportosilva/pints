@@ -178,7 +178,7 @@ class MultiChainMCMC(MCMCSampler):
                 'Number of initial positions must be equal to number of'
                 ' chains.')
         self._n_parameters = len(x0[0])
-        if not all([len(x) == self._n_parameters for x in x0[1:]]):
+        if any(len(x) != self._n_parameters for x in x0[1:]):
             raise ValueError('All initial points must have same dimension.')
         self._x0 = np.array([pints.vector(x) for x in x0])
         self._x0.setflags(write=False)
@@ -353,7 +353,7 @@ class MCMCController(object):
             raise ValueError(
                 'Number of initial positions must be equal to number of'
                 ' chains.')
-        if not all([len(x) == self._n_parameters for x in x0]):
+        if any(len(x) != self._n_parameters for x in x0):
             raise ValueError(
                 'All initial positions must have the same dimension as the'
                 ' given LogPDF.')

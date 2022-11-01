@@ -108,9 +108,8 @@ def sample_initial_points(function, n_points, random_sampler=None,
         fxs = evaluator.evaluate(xs)
         for i, x in enumerate(xs):
             fx = fxs[i]
-            if np.isfinite(fx):
-                if boundaries is None or boundaries.check(x):
-                    x0.append(x)
+            if np.isfinite(fx) and (boundaries is None or boundaries.check(x)):
+                x0.append(x)
         n_tries += 1
 
     if len(x0) < n_points:

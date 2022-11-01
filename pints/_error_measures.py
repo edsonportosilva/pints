@@ -299,10 +299,7 @@ class SumOfErrors(ErrorMeasure):
 
     def __call__(self, x):
         i = iter(self._weights)
-        total = 0
-        for e in self._errors:
-            total += e(x) * next(i)
-        return total
+        return sum(e(x) * next(i) for e in self._errors)
 
     def evaluateS1(self, x):
         """

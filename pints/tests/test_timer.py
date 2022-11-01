@@ -24,7 +24,7 @@ class TestTimer(unittest.TestCase):
         t = pints.Timer()
         a = t.time()
         self.assertGreaterEqual(a, 0)
-        for i in range(10):
+        for _ in range(10):
             self.assertGreater(t.time(), a)
         a = t.time()
         t.reset()

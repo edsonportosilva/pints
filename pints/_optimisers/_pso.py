@@ -126,14 +126,18 @@ class PSO(pints.PopulationBasedOptimiser):
         # If we couldn't sample from the boundaries, use gaussian sampling
         # around x0.
         if len(self._xs) < self._population_size:
-            for i in range(self._population_size - 1):
-                self._xs.append(np.random.normal(self._x0, self._sigma0))
+            self._xs.extend(
+                np.random.normal(self._x0, self._sigma0)
+                for _ in range(self._population_size - 1)
+            )
+
         self._xs = np.array(self._xs)
 
         # Set initial velocities
-        for i in range(self._population_size):
-            self._vs.append(1e-1 * self._sigma0 *
-                            np.random.uniform(0, 1, self._n_parameters))
+        self._vs.extend(
+            1e-1 * self._sigma0 * np.random.uniform(0, 1, self._n_parameters)
+            for _ in range(self._population_size)
+        )
 
         # Set initial scores and local best
         for i in range(self._population_size):
@@ -164,7 +168,7 @@ class PSO(pints.PopulationBasedOptimiser):
         """ See :meth:`Loggable._log_init()`. """
         # Show best position of each particle
         for i in range(self._population_size):
-            logger.add_float('f' + str(i), file_only=True)
+            logger.add_float(f'f{str(i)}', file_only=True)
 
     def _log_write(self, logger):
         """ See :meth:`Loggable._log_write()`. """
@@ -247,9 +251,10 @@ class PSO(pints.PopulationBasedOptimiser):
             # Reduce speed if going too fast, as indicated by going out of
             # bounds.
             # This is not in the original algorithm but seems to work well
-            if self._boundaries is not None:
-                if not self._boundaries.check(self._xs[i] + self._vs[i]):
-                    self._vs[i] *= 0.5
+            if self._boundaries is not None and not self._boundaries.check(
+                self._xs[i] + self._vs[i]
+            ):
+                self._vs[i] *= 0.5
 
             # Update position
             self._xs[i] += self._vs[i]

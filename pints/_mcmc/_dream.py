@@ -133,7 +133,7 @@ class DreamMCMC(pints.MultiChainMCMC):
                 e = np.random.uniform(-e, e)
 
                 dX = 0
-                for k in range(0, delta):
+                for _ in range(delta):
                     r1, r2 = self._draw(j)
                     dX += (1 + e) * gamma * (
                         self._current[r1] - self._current[r2])
@@ -285,7 +285,7 @@ class DreamMCMC(pints.MultiChainMCMC):
                 # Update CR distribution
                 delta = (next - self._current)**2
                 for j in range(self._n_chains):
-                    for d in range(0, self._n_parameters):
+                    for d in range(self._n_parameters):
                         self._delta[self._m[j]] += (
                             delta[j][d] / max(self._variance[j][d], 1e-11))
 
@@ -386,7 +386,7 @@ class DreamMCMC(pints.MultiChainMCMC):
         """
         Enables/disables constant-crossover mode (must be bool).
         """
-        self._constant_crossover = True if enabled else False
+        self._constant_crossover = bool(enabled)
 
     def set_b_star(self, b_star):
         """

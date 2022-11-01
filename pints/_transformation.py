@@ -308,7 +308,7 @@ class ComposedTransformation(Transformation):
     """
     def __init__(self, *transformations):
         # Check if sub-transformations given
-        if len(transformations) < 1:
+        if not transformations:
             raise ValueError('Must have at least one sub-transformation.')
 
         # Check if proper Transformation, count dimension
@@ -412,8 +412,7 @@ class ComposedTransformation(Transformation):
             lo = hi
             hi += transformation.n_parameters()
             diag[lo:hi] = np.diagonal(transformation.jacobian(q[lo:hi]))
-        output = np.diag(diag)
-        return output
+        return np.diag(diag)
 
     def _elementwise_log_jacobian_det(self, q):
         """

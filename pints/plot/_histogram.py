@@ -62,7 +62,7 @@ def histogram(
 
     # Check parameter names
     if parameter_names is None:
-        parameter_names = ['Parameter' + str(i + 1) for i in range(n_param)]
+        parameter_names = [f'Parameter{str(i + 1)}' for i in range(n_param)]
     elif len(parameter_names) != n_param:
         raise ValueError(
             'Length of `parameter_names` must be same as number of'
@@ -76,11 +76,10 @@ def histogram(
             )
 
     # Check reference parameters
-    if ref_parameters is not None:
-        if len(ref_parameters) != n_param:
-            raise ValueError(
-                'Length of `ref_parameters` must be same as number of'
-                ' parameters.')
+    if ref_parameters is not None and len(ref_parameters) != n_param:
+        raise ValueError(
+            'Length of `ref_parameters` must be same as number of'
+            ' parameters.')
 
     # Set up figure
     fig, axes = plt.subplots(
@@ -110,12 +109,22 @@ def histogram(
             axes[i, 0].set_ylabel('Frequency')
             if use_old_matplotlib:  # pragma: no cover
                 axes[i, 0].hist(
-                    samples_j[:, i], bins=xbins[:, i], alpha=alpha,
-                    normed=True, label='Samples ' + str(1 + j_list))
+                    samples_j[:, i],
+                    bins=xbins[:, i],
+                    alpha=alpha,
+                    normed=True,
+                    label=f'Samples {str(1 + j_list)}',
+                )
+
             else:
                 axes[i, 0].hist(
-                    samples_j[:, i], bins=xbins[:, i], alpha=alpha,
-                    density=True, label='Samples ' + str(1 + j_list))
+                    samples_j[:, i],
+                    bins=xbins[:, i],
+                    alpha=alpha,
+                    density=True,
+                    label=f'Samples {str(1 + j_list)}',
+                )
+
 
             # Add kde plot
             if kde:

@@ -29,10 +29,7 @@ class TestIO(unittest.TestCase):
         chain1 = np.random.uniform(size=(m, n))
 
         # Must support lists as well as arrays
-        chain2 = []
-        for row in np.random.uniform(size=(m, n)):
-            chain2.append(list(row))
-
+        chain2 = [list(row) for row in np.random.uniform(size=(m, n))]
         # Check saving and loading
         with TemporaryDirectory() as d:
             # Single chain

@@ -381,19 +381,16 @@ class SliceStepoutMCMC(pints.SingleChainMCMC):
             self._proposed[self._active_param_index] = (
                 self._l_hat + self._r_hat
                 - self._current[self._active_param_index])
-            self._ready_for_tell = True
-            return np.array(self._proposed, copy=True)
-
         else:
             # Sample new trial point by sampling uniformly from the
             # interval ``I=(l,r)``
             u = np.random.uniform()
             self._proposed[self._active_param_index] = \
-                self._l + u * (self._r - self._l)
+                    self._l + u * (self._r - self._l)
 
-            # Send trial point for checks
-            self._ready_for_tell = True
-            return np.array(self._proposed, copy=True)
+
+        self._ready_for_tell = True
+        return np.array(self._proposed, copy=True)
 
     def bisection_steps(self):
         """

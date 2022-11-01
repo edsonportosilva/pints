@@ -52,17 +52,16 @@ class GermanCreditLogPDF(ToyLogPDF):
                 raise ValueError('No data supplied. Consider setting download'
                                  ' to True to download data.')
             x, y = self._download_data()
-            dims = x.shape[1]
         else:
             if download is True:
                 raise ValueError(
                     'Either supply no data or set download to True to download'
                     ' data, but not both.')
-            dims = x.shape[1]
-            if dims != 25:
+            if x.shape[1] != 25:
                 raise ValueError('x must have 25 predictor columns.')
             if max(y) != 1 or min(y) != -1:
                 raise ValueError('Output must be either 1 or -1.')
+        dims = x.shape[1]
         self._x = x
         self._y = y
         self._n_parameters = dims

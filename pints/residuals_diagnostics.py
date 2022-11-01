@@ -533,9 +533,10 @@ def plot_residuals_vs_output(parameters, problem, thinning=None):
                 ' zero.')
 
     # Solve the model for each parameter
-    predicted_values = []
-    for params in parameters[::thinning, :n_params]:
-        predicted_values.append(problem.evaluate(params))
+    predicted_values = [
+        problem.evaluate(params)
+        for params in parameters[::thinning, :n_params]
+    ]
 
     # Get the posterior median solution
     posterior_median_values = np.median(predicted_values, axis=0)
@@ -648,12 +649,11 @@ def calculate_residuals(parameters, problem, thinning=None):
                 'Thinning rate must be `None` or an integer greater than'
                 ' zero.')
 
-    # Solve the model for each parameter setting
-    i = 0
-    predicted_values = []
-    for params in parameters[::thinning, :n_params]:
-        predicted_values.append(problem.evaluate(params))
-        i += 1
+    predicted_values = [
+        problem.evaluate(params)
+        for params in parameters[::thinning, :n_params]
+    ]
+
     predicted_values = np.array(predicted_values)
 
     # Calculate the residuals

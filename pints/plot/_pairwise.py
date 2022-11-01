@@ -83,18 +83,17 @@ def pairwise(samples,
 
     # Check parameter names
     if parameter_names is None:
-        parameter_names = ['Parameter' + str(i + 1) for i in range(n_param)]
+        parameter_names = [f'Parameter{str(i + 1)}' for i in range(n_param)]
     elif len(parameter_names) != n_param:
         raise ValueError(
             'Length of `parameter_names` must be same as number of'
             ' parameters.')
 
     # Check reference parameters
-    if ref_parameters is not None:
-        if len(ref_parameters) != n_param:
-            raise ValueError(
-                'Length of `ref_parameters` must be same as number of'
-                ' parameters.')
+    if ref_parameters is not None and len(ref_parameters) != n_param:
+        raise ValueError(
+            'Length of `ref_parameters` must be same as number of'
+            ' parameters.')
 
     # Create figure
     fig_size = (3 * n_param, 3 * n_param)
@@ -155,16 +154,12 @@ def pairwise(samples,
                 axes[i, j].set_ylim(ymin, ymax)
 
                 if not kde and not heatmap:
-                    # Create scatter plot
-
-                    # Determine point opacity
-                    num_points = len(samples[:, i])
                     if opacity is None:
-                        if num_points < 10:
-                            opacity = 1.0
-                        else:
-                            opacity = 1.0 / np.log10(num_points)
+                        # Create scatter plot
 
+                        # Determine point opacity
+                        num_points = len(samples[:, i])
+                        opacity = 1.0 if num_points < 10 else 1.0 / np.log10(num_points)
                     # Scatter points
                     axes[i, j].scatter(
                         samples[:, j], samples[:, i], alpha=opacity, s=0.1)
@@ -194,7 +189,7 @@ def pairwise(samples,
                     with warnings.catch_warnings():
                         warnings.simplefilter('ignore', UnicodeWarning)
                         axes[i, j].set_aspect((xmax - xmin) / (ymax - ymin))
-                elif heatmap:
+                else:
                     # Create a heatmap-based plot
 
                     # Create bins

@@ -33,8 +33,8 @@ def _load_version_int():
             version = f.read().strip().split(',')
         major, minor, revision = [int(x) for x in version]
         return major, minor, revision
-    except Exception as e:      # pragma: no cover
-        raise RuntimeError('Unable to read version number (' + str(e) + ').')
+    except Exception as e:  # pragma: no cover
+        raise RuntimeError(f'Unable to read version number ({str(e)}).')
 
 __version_int__ = _load_version_int()
 __version__ = '.'.join([str(x) for x in __version_int__])
@@ -48,10 +48,7 @@ def version(formatted=False):
     If ``formatted=True``, it returns a string formatted version (for example
     "Pints 1.0.0").
     """
-    if formatted:
-        return 'Pints ' + __version__
-    else:
-        return __version_int__
+    return f'Pints {__version__}' if formatted else __version_int__
 
 
 #

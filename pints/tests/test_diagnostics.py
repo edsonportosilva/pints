@@ -23,7 +23,7 @@ class TestDiagnostics(unittest.TestCase):
         y_true = np.array(
             [1., 0.21354167, -0.41666667, -0.296875, -0.03645833, 0.03645833])
 
-        for i in range(0, len(x)):
+        for i in range(len(x)):
             self.assertAlmostEqual(y[i], y_true[i])
 
     def test_autocorrelation_negative(self):

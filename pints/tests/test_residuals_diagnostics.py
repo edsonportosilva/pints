@@ -58,7 +58,7 @@ class TestResidualsDiagnostics(unittest.TestCase):
         samples = np.zeros((3, 50, 4))
         for chain_idx in range(3):
             for parameter_idx in range(4):
-                if parameter_idx == 0 or parameter_idx == 2:
+                if parameter_idx in [0, 2]:
                     chain = np.random.normal(3.01, .2, 50)
                 else:
                     chain = np.random.normal(1.98, .2, 50)

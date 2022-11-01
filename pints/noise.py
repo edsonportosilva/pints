@@ -285,14 +285,10 @@ def multiplicative_gaussian(eta, sigma, f):
     if f.ndim > 2:
         raise ValueError('f must have be of shape (n_outputs, n_times).')
 
-    if f.ndim == 2:
-        n_outputs = f.shape[0]
-    else:
-        n_outputs = 1
-
+    n_outputs = f.shape[0] if f.ndim == 2 else 1
     if not np.isscalar(eta):
         eta = np.array(eta)
-        if eta.ndim > 1 or (eta.shape[0] != 1 and eta.shape[0] != n_outputs):
+        if eta.ndim > 1 or eta.shape[0] not in [1, n_outputs]:
             raise ValueError('eta must be a scalar or of shape (n_outputs,).')
 
         # Reshape eta so that it broadcasts to f correctly
@@ -300,8 +296,7 @@ def multiplicative_gaussian(eta, sigma, f):
 
     if not np.isscalar(sigma):
         sigma = np.array(sigma)
-        if sigma.ndim > 1 or (sigma.shape[0] != 1 and
-                              sigma.shape[0] != n_outputs):
+        if sigma.ndim > 1 or sigma.shape[0] not in [1, n_outputs]:
             raise ValueError('sigma must be a scalar or of shape '
                              '(n_outputs,).')
 
@@ -312,9 +307,8 @@ def multiplicative_gaussian(eta, sigma, f):
     if np.isscalar(sigma):
         if sigma <= 0:
             raise ValueError('Standard deviation must be greater than zero.')
-    else:
-        if np.any(sigma <= 0):
-            raise ValueError('Standard deviation must be greater than zero.')
+    elif np.any(sigma <= 0):
+        raise ValueError('Standard deviation must be greater than zero.')
 
     e = np.random.normal(0, sigma, f.shape)
     return f ** eta * e

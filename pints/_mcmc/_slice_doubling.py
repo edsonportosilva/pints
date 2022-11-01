@@ -336,10 +336,9 @@ class SliceDoublingMCMC(pints.SingleChainMCMC):
                     self._temp_r_hat[self._active_param_index] = self._r_hat
                     return np.array(self._temp_r_hat, copy=True)
 
-                if self._proposed[self._active_param_index] >= self._m:
-                    self._l_hat = self._m
-                    self._temp_l_hat[self._active_param_index] = self._l_hat
-                    return np.array(self._temp_l_hat, copy=True)
+                self._l_hat = self._m
+                self._temp_l_hat[self._active_param_index] = self._l_hat
+                return np.array(self._temp_l_hat, copy=True)
 
             # Now that (r_hat - l_hat) <= 1.1*w, the ``Acceptance Check`` loop
             # is over and we accept the trial point.
@@ -484,11 +483,10 @@ class SliceDoublingMCMC(pints.SingleChainMCMC):
             elif self._init_right:
                 self._fx_r = fx
                 self._init_right = False
+            elif self._v < .5:
+                self._fx_l = fx
             else:
-                if self._v < .5:
-                    self._fx_l = fx
-                else:
-                    self._fx_r = fx
+                self._fx_r = fx
             return None
 
         # Check ``f(x_1) >= y``

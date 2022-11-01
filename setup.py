@@ -21,7 +21,7 @@ def load_version():
             version = f.read().strip().split(',')
         return '.'.join([str(int(x)) for x in version])
     except Exception as e:
-        raise RuntimeError('Unable to read version number (' + str(e) + ').')
+        raise RuntimeError(f'Unable to read version number ({str(e)}).')
 
 
 # Go!

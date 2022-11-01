@@ -142,7 +142,7 @@ class TestNelderMead(unittest.TestCase):
         # Give wrong answer in shrink step
         with self.assertRaisesRegex(ValueError, 'length n_parameters'):
             opt = method(x0)
-            for i in range(500):
+            for _ in range(500):
                 opt.tell(e.evaluate(opt.ask()))
                 if opt._shrink:
                     xs = opt.ask()

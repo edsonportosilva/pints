@@ -94,11 +94,10 @@ class SimpleEggBoxLogPDF(ToyLogPDF):
         dimension = 2
 
         # Check size of input
-        if not len(samples.shape) == 2:
+        if len(samples.shape) != 2:
             raise ValueError('Given samples list must be n x 2.')
         if samples.shape[1] != dimension:
-            raise ValueError(
-                'Given samples must have length ' + str(dimension))
+            raise ValueError(f'Given samples must have length {dimension}')
 
         # Separate samples into quadrants
         q12 = samples[samples[:, 1] >= 0]

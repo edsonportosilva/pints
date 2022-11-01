@@ -114,9 +114,7 @@ class StochasticLogisticModel(pints.ForwardModel, ToyModel):
         # run Gillespie
         time, pop_size = self._simulate_raw(parameters)
 
-        # interpolate
-        values = self._interpolate_values(time, pop_size, times, parameters)
-        return values
+        return self._interpolate_values(time, pop_size, times, parameters)
 
     def mean(self, parameters, times):
         r"""

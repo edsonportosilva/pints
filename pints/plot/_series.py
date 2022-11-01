@@ -55,13 +55,13 @@ def series(samples, problem, ref_parameters=None, thinning=None):
 
     # Check reference parameters
     if ref_parameters is not None:
-        if len(ref_parameters) != n_param and \
-                len(ref_parameters) != n_parameters:
+        if len(ref_parameters) in [n_param, n_parameters]:
+            ref_series = problem.evaluate(ref_parameters[:n_parameters])
+
+        else:
             raise ValueError(
                 'Length of `ref_parameters` must be same as number of'
                 ' parameters.')
-        ref_series = problem.evaluate(ref_parameters[:n_parameters])
-
     # Get number of problem output
     n_outputs = problem.n_outputs()
 
@@ -78,12 +78,11 @@ def series(samples, problem, ref_parameters=None, thinning=None):
     # Get times
     times = problem.times()
 
-    # Evaluate the model for all parameter sets in the samples
-    i = 0
-    predicted_values = []
-    for params in samples[::thinning, :n_parameters]:
-        predicted_values.append(problem.evaluate(params))
-        i += 1
+    predicted_values = [
+        problem.evaluate(params)
+        for params in samples[::thinning, :n_parameters]
+    ]
+
     predicted_values = np.array(predicted_values)
     mean_values = np.mean(predicted_values, axis=0)
 

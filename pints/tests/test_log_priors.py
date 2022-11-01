@@ -166,7 +166,7 @@ class TestPrior(unittest.TestCase):
 
         # Test at random points
         np.random.seed(1)
-        for i in range(100):
+        for _ in range(100):
             x = np.random.normal(m1, c1)
             y = np.random.normal(m2, c2)
             self.assertAlmostEqual(p([x, y]), p1([x]) + p2([y]))
@@ -938,8 +938,8 @@ class TestPrior(unittest.TestCase):
         phi = scipy.stats.norm.pdf
         ndtr = scipy.special.ndtr
         theoretical_mean = \
-            mean + std / (ndtr((b - mean) / std) - ndtr((a - mean) / std)) \
-            * (phi((a - mean) / std) - phi((b - mean) / std))
+                mean + std / (ndtr((b - mean) / std) - ndtr((a - mean) / std)) \
+                * (phi((a - mean) / std) - phi((b - mean) / std))
         self.assertAlmostEqual(p.mean(), theoretical_mean)
 
         # Test derivatives
@@ -1024,7 +1024,7 @@ class TestPrior(unittest.TestCase):
         ndtr = scipy.special.ndtr
         x = 3.0
         theoretical_cdf = (ndtr((x - mean) / std) - ndtr((a - mean) / std)) \
-            / (ndtr((b - mean) / std) - ndtr((a - mean) / std))
+                / (ndtr((b - mean) / std) - ndtr((a - mean) / std))
         self.assertAlmostEqual(p.cdf(x), theoretical_cdf)
 
         mean = 0.0

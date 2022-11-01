@@ -131,7 +131,7 @@ class TestPooledLogPDF(unittest.TestCase):
         log_pdf = pints.PooledLogPDF(log_pdfs, pooled)
 
         n_parameters = \
-            self.log_pdf_1.n_parameters() + self.log_pdf_2.n_parameters()
+                self.log_pdf_1.n_parameters() + self.log_pdf_2.n_parameters()
         self.assertEqual(log_pdf.n_parameters(), n_parameters)
 
         # Pool first parameter

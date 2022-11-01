@@ -137,10 +137,10 @@ class TestDreamMCMC(unittest.TestCase):
         # Repeated asks should return same point
         mcmc = pints.DreamMCMC(n, x0)
         # Get into accepting state
-        for i in range(100):
+        for _ in range(100):
             mcmc.tell([self.log_posterior(x) for x in mcmc.ask()])
         x = mcmc.ask()
-        for i in range(10):
+        for _ in range(10):
             self.assertTrue(x is mcmc.ask())
 
         # Repeated tells should fail

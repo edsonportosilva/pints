@@ -92,9 +92,7 @@ class RectangularBoundaries(Boundaries):
         """ See :meth:`pints.Boundaries.check()`. """
         if np.any(parameters < self._lower):
             return False
-        if np.any(parameters >= self._upper):
-            return False
-        return True
+        return not np.any(parameters >= self._upper)
 
     def n_parameters(self):
         """ See :meth:`pints.Boundaries.n_parameters()`. """

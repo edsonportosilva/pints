@@ -192,7 +192,7 @@ class NelderMead(pints.Optimiser):
         if self._shrink:
             for i in range(self._n_parameters):
                 self._xs[1 + i] = \
-                    self._xs[0] + self._ys * (self._xs[1 + i] - self._xs[0])
+                        self._xs[0] + self._ys * (self._xs[1 + i] - self._xs[0])
 
             return np.array(self._xs[1:], copy=True)
 

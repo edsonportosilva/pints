@@ -94,8 +94,13 @@ class BareCMAES(pints.PopulationBasedOptimiser):
 
         # Create new samples
         # Normalised samples: centered at zero and no rotation or scaling
-        self._zs = np.array([np.random.normal(0, 1, self._n_parameters)
-                             for i in range(self._population_size)])
+        self._zs = np.array(
+            [
+                np.random.normal(0, 1, self._n_parameters)
+                for _ in range(self._population_size)
+            ]
+        )
+
 
         # Centered samples: centered at zero, with rotation and scaling
         self._ys = np.array([self._R.dot(self._S).dot(z) for z in self._zs])
@@ -128,10 +133,7 @@ class BareCMAES(pints.PopulationBasedOptimiser):
         of ``C`` while ``S`` is a diagonal matrix containing the squares of the
         eigenvalues of ``C``, such that ``C = R S S R.T``.
         """
-        if decomposed:
-            return self._R, self._S
-        else:
-            return np.copy(self._C)
+        return (self._R, self._S) if decomposed else np.copy(self._C)
 
     def f_best(self):
         """ See :meth:`Optimiser.f_best()`. """

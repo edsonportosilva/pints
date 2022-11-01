@@ -329,7 +329,7 @@ class Logger(object):
         else:
             self._buffer.extend(data)
             while len(self._buffer) >= nfields:
-                rows.append([self._buffer.popleft() for i in range(nfields)])
+                rows.append([self._buffer.popleft() for _ in range(nfields)])
 
             # Nothing to print? Then return
             if not rows:
@@ -406,16 +406,16 @@ class Logger(object):
 
         # Log to screen
         if self._stream is not None:
-            lines = []
-            for row in formatted_rows:
-                lines.append(' '.join([row[i] for i in self._stream_fields]))
+            lines = [
+                ' '.join([row[i] for i in self._stream_fields])
+                for row in formatted_rows
+            ]
+
             self._stream.write('\n'.join(lines) + '\n')
 
         # Log to file (non csv)
         if self._filename is not None and not self._csv_mode:
-            lines = []
-            for row in formatted_rows:
-                lines.append(' '.join([x for x in row]))
+            lines = [' '.join(list(row)) for row in formatted_rows]
             with open(self._filename, 'a' if self._have_logged else 'w') as f:
                 f.write('\n'.join(lines) + '\n')
 
@@ -433,11 +433,8 @@ class Logger(object):
         if self._have_logged:
             raise RuntimeError('Cannot configure after logging has started.')
 
-        if filename is None:
-            self._filename = None
-        else:
-            self._filename = str(filename)
-        self._csv_mode = True if csv else False
+        self._filename = None if filename is None else str(filename)
+        self._csv_mode = bool(csv)
 
     def set_stream(self, stream=sys.stdout):
         """

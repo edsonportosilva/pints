@@ -63,8 +63,13 @@ class SNES(pints.PopulationBasedOptimiser):
         self._ready_for_tell = True
 
         # Create new samples
-        self._ss = np.array([np.random.normal(0, 1, self._n_parameters)
-                            for i in range(self._population_size)])
+        self._ss = np.array(
+            [
+                np.random.normal(0, 1, self._n_parameters)
+                for _ in range(self._population_size)
+            ]
+        )
+
         self._xs = self._mu + self._sigmas * self._ss
 
         # Boundaries? Then only pass user xs that are within bounds

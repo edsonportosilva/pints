@@ -69,10 +69,10 @@ class TestAdaptiveCovarianceMC(unittest.TestCase):
         mcmc = pints.HaarioACMC(x0)
         # Get into accepting state
         mcmc.set_initial_phase(False)
-        for i in range(100):
+        for _ in range(100):
             mcmc.tell(self.log_posterior(mcmc.ask()))
         x = mcmc.ask()
-        for i in range(10):
+        for _ in range(10):
             self.assertTrue(x is mcmc.ask())
 
         # Repeated tells should fail

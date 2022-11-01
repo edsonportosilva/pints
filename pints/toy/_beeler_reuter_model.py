@@ -115,7 +115,7 @@ class ActionPotentialModel(pints.ForwardModel, ToyModel):
         beta = 1.7 / (1 + np.exp(-0.082 * (V + 22.5)))
         dhdt = alpha * (1 - h) - beta * h
         alpha = 0.055 * np.exp(-0.25 * (V + 78)) \
-            / (1 + np.exp(-0.2 * (V + 78)))
+                / (1 + np.exp(-0.2 * (V + 78)))
         beta = 0.3 / (1 + np.exp(-0.1 * (V + 32)))
         djdt = alpha * (1 - j) - beta * j
 
@@ -123,14 +123,14 @@ class ActionPotentialModel(pints.ForwardModel, ToyModel):
         E_Ca = -82.3 - 13.0287 * np.log(Cai)
         ICa = gCaBar * d * f * (V - E_Ca)
         alpha = 0.095 * np.exp(-0.01 * (V + -5)) \
-            / (np.exp(-0.072 * (V + -5)) + 1)
+                / (np.exp(-0.072 * (V + -5)) + 1)
         beta = 0.07 * np.exp(-0.017 * (V + 44)) \
-            / (np.exp(0.05 * (V + 44)) + 1)
+                / (np.exp(0.05 * (V + 44)) + 1)
         dddt = alpha * (1 - d) - beta * d
         alpha = 0.012 * np.exp(-0.008 * (V + 28)) \
-            / (np.exp(0.15 * (V + 28)) + 1)
+                / (np.exp(0.15 * (V + 28)) + 1)
         beta = 0.0065 * np.exp(-0.02 * (V + 30)) \
-            / (np.exp(-0.2 * (V + 30)) + 1)
+                / (np.exp(-0.2 * (V + 30)) + 1)
         dfdt = alpha * (1 - f) - beta * f
 
         # Cai
@@ -145,11 +145,11 @@ class ActionPotentialModel(pints.ForwardModel, ToyModel):
         )
         # IX1
         Ix1 = gx1Bar * x1 * (np.exp(0.04 * (V + 77)) - 1) \
-            / np.exp(0.04 * (V + 35))
+                / np.exp(0.04 * (V + 35))
         alpha = 0.0005 * np.exp(0.083 * (V + 50)) \
-            / (np.exp(0.057 * (V + 50)) + 1)
+                / (np.exp(0.057 * (V + 50)) + 1)
         beta = 0.0013 * np.exp(-0.06 * (V + 20)) \
-            / (np.exp(-0.04 * (V + 333)) + 1)
+                / (np.exp(-0.04 * (V + 333)) + 1)
         dx1dt = alpha * (1 - x1) - beta * x1
 
         # I_Stim
@@ -161,16 +161,7 @@ class ActionPotentialModel(pints.ForwardModel, ToyModel):
         # V
         dVdt = -(1 / self._C_m) * (IK1 + Ix1 + INa + ICa - IStim)
 
-        # Output
-        output = np.array([dVdt,
-                           dCaidt,
-                           dmdt,
-                           dhdt,
-                           djdt,
-                           dddt,
-                           dfdt,
-                           dx1dt])
-        return output
+        return np.array([dVdt, dCaidt, dmdt, dhdt, djdt, dddt, dfdt, dx1dt])
 
     def set_initial_conditions(self, y0):
         """
@@ -222,12 +213,15 @@ class ActionPotentialModel(pints.ForwardModel, ToyModel):
               self._f0,
               self._x10]
 
-        solved_states = scipy.integrate.odeint(
-            self._rhs, y0, times, args=(parameters,), hmax=self._I_Stim_length,
-            rtol=self._rtol, atol=self._atol)
-
-        # Return all states
-        return solved_states
+        return scipy.integrate.odeint(
+            self._rhs,
+            y0,
+            times,
+            args=(parameters,),
+            hmax=self._I_Stim_length,
+            rtol=self._rtol,
+            atol=self._atol,
+        )
 
     def suggested_parameters(self):
         """

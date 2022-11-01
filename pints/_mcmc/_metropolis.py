@@ -114,7 +114,7 @@ class MetropolisRandomWalkMCMC(pints.SingleChainMCMC):
 
         # Check position
         current = pints.vector(current)
-        if not len(current) == self._n_parameters:
+        if len(current) != self._n_parameters:
             raise ValueError('Point `current` has the wrong dimensions.')
         current.setflags(write=False)
 
@@ -124,7 +124,7 @@ class MetropolisRandomWalkMCMC(pints.SingleChainMCMC):
         # Check proposal
         if proposed is not None:
             proposed = pints.vector(proposed)
-            if not len(proposed) == self._n_parameters:
+            if len(proposed) != self._n_parameters:
                 raise ValueError('Point `proposed` has the wrong dimensions.')
             proposed.setflags(write=False)
 

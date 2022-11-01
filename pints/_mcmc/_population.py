@@ -114,7 +114,7 @@ class PopulationMCMC(pints.SingleChainMCMC):
 
         # Create inner samplers
         n = len(self._schedule)
-        self._chains = [self._method(self._x0, self._sigma0) for i in range(n)]
+        self._chains = [self._method(self._x0, self._sigma0) for _ in range(n)]
 
         # Set initial phase for methods that need it
         if self._needs_initial_phase:
@@ -305,23 +305,22 @@ class PopulationMCMC(pints.SingleChainMCMC):
         # Accept/reject exchange step (b = log(A))
         self._have_exchanged = False
         b = fi_xj + fj_xi - fi_xi - fj_xj
-        if not np.isnan(b):
-            if b > 0 or b > np.log(np.random.uniform(0, 1)):
-                # Copy arrays for current points: without the copy() operation
-                # this is unsafe, as it places references to arrays in other
-                # arrays, so that the contents can (and will) still be changed!
-                xi = np.copy(self._current[self._i])
-                xj = np.copy(self._current[self._j])
-                # Swap current points and untempered log pdfs
-                self._current[self._i] = xj
-                self._current[self._j] = xi
-                self._current_log_pdfs[self._i] = f_xj
-                self._current_log_pdfs[self._j] = f_xi
-                # Replace points and temperered log pdfs inside samplers
-                self._chains[self._i].replace(xj, fi_xj)
-                self._chains[self._j].replace(xi, fj_xi)
-                # Update state
-                self._have_exchanged = True
+        if not np.isnan(b) and (b > 0 or b > np.log(np.random.uniform(0, 1))):
+            # Copy arrays for current points: without the copy() operation
+            # this is unsafe, as it places references to arrays in other
+            # arrays, so that the contents can (and will) still be changed!
+            xi = np.copy(self._current[self._i])
+            xj = np.copy(self._current[self._j])
+            # Swap current points and untempered log pdfs
+            self._current[self._i] = xj
+            self._current[self._j] = xi
+            self._current_log_pdfs[self._i] = f_xj
+            self._current_log_pdfs[self._j] = f_xi
+            # Replace points and temperered log pdfs inside samplers
+            self._chains[self._i].replace(xj, fi_xj)
+            self._chains[self._j].replace(xi, fj_xi)
+            # Update state
+            self._have_exchanged = True
 
         # Return "accepted" any time the zero-chain moves
         changed = accepted and self._i == 0

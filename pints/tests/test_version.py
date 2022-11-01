@@ -31,7 +31,7 @@ class TestVersion(unittest.TestCase):
     def test_version_method(self):
 
         self.assertEqual(pints.version(), pints.__version_int__)
-        self.assertEqual(pints.version(True), 'Pints ' + pints.__version__)
+        self.assertEqual(pints.version(True), f'Pints {pints.__version__}')
 
 
 if __name__ == '__main__':

@@ -35,7 +35,7 @@ def function(f, x, lower=None, upper=None, evaluations=20):
     import matplotlib.pyplot as plt
 
     # Check function and get n_parameters
-    if not (isinstance(f, pints.LogPDF) or isinstance(f, pints.ErrorMeasure)):
+    if not (isinstance(f, (pints.LogPDF, pints.ErrorMeasure))):
         raise ValueError(
             'Given function must be pints.LogPDF or pints.ErrorMeasure.')
     n_param = f.n_parameters()
@@ -90,7 +90,7 @@ def function(f, x, lower=None, upper=None, evaluations=20):
         i2 = i1 + evaluations
         axes[j].plot(xs[i1:i2, j], fs[i1:i2], c='green', label='Function')
         axes[j].axvline(p, c='blue', label='Value')
-        axes[j].set_xlabel('Parameter ' + str(1 + j))
+        axes[j].set_xlabel(f'Parameter {str(1 + j)}')
         axes[j].legend()
 
     plt.tight_layout()
