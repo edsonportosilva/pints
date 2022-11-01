@@ -267,7 +267,7 @@ multiprocessing.html#all-platforms>`_ for details).
         """
         Populates (but usually repopulates) the worker pool.
         """
-        for k in range(self._n_workers - len(self._workers)):
+        for _ in range(self._n_workers - len(self._workers)):
             w = _Worker(
                 self._function,
                 self._args,
@@ -356,9 +356,7 @@ multiprocessing.html#all-platforms>`_ for details).
 
         # Error in worker threads
         if self._error.is_set():
-            errors = self._stop()
-            # Raise exception
-            if errors:
+            if errors := self._stop():
                 pid, trace = errors[0]
                 raise Exception(
                     'Exception in subprocess:\n' + trace
@@ -509,7 +507,7 @@ class _Worker(multiprocessing.Process):
         sys.stderr = open(os.devnull, 'w')
         try:
             with threadpoolctl.threadpool_limits(self._max_threads):
-                for k in range(self._max_tasks):
+                for _ in range(self._max_tasks):
                     i, seed, x = self._tasks.get()
                     np.random.seed(seed)
                     f = self._function(x, *self._args)

@@ -132,7 +132,7 @@ class TestOptimisationController(unittest.TestCase):
         self.assertTrue(np.all(a == np.arange(opt.iterations())))
 
         # Ensure second argument was always the optimisation method
-        b = tuple(set([arg[1] for arg in args]))
+        b = tuple({arg[1] for arg in args})
         self.assertEqual(len(b), 1)
         self.assertIs(b[0], opt.optimiser())
 

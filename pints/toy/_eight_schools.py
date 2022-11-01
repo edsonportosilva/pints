@@ -94,10 +94,7 @@ class EightSchoolsLogPDF(ToyLogPDF):
 
         for i, theta_tilde in enumerate(thetas):
             log_prob += log_prior([theta_tilde])
-            if self._centered:
-                theta = theta_tilde
-            else:
-                theta = mu + theta_tilde * tau
+            theta = theta_tilde if self._centered else mu + theta_tilde * tau
             log_prior_2 = pints.GaussianLogPrior(theta, self._sigma_j[i])
             log_prob += log_prior_2([self._y_j[i]])
 
@@ -121,9 +118,9 @@ class EightSchoolsLogPDF(ToyLogPDF):
         log_prob2, dL2 = self._tau_log_pdf.evaluateS1([tau])
         log_prob = log_prob1 + log_prob2
 
+        dL_theta = []
         if self._centered:
             log_prior = pints.GaussianLogPrior(mu, tau)
-            dL_theta = []
             for i, theta in enumerate(thetas):
                 y_j = self._y_j[i]
                 sigma_j = self._sigma_j[i]
@@ -136,7 +133,6 @@ class EightSchoolsLogPDF(ToyLogPDF):
                 dL_theta.append(dL_temp[0])
         else:
             log_prior = pints.GaussianLogPrior(0, 1)
-            dL_theta = []
             for i, theta_tilde in enumerate(thetas):
                 y_j = self._y_j[i]
                 sigma_j = self._sigma_j[i]

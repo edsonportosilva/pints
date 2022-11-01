@@ -49,7 +49,7 @@ class ConeLogPDF(ToyLogPDF):
         return self._beta
 
     def __call__(self, x):
-        if not len(x) == self._n_parameters:
+        if len(x) != self._n_parameters:
             raise ValueError('x must be of same dimensions as density')
         return -np.linalg.norm(x)**self._beta
 
@@ -60,13 +60,12 @@ class ConeLogPDF(ToyLogPDF):
         x = float(x)
         if x < 0:
             raise ValueError('Normed distance must be non-negative.')
-        n = self._n_parameters
-        beta = self._beta
         if x == 0:
             return 0
-        else:
-            return (-(x**n) * ((x**beta)**(-(n / beta))) *
-                    scipy.special.gammaincc(n / beta, x**beta) + 1)
+        n = self._n_parameters
+        beta = self._beta
+        return (-(x**n) * ((x**beta)**(-(n / beta))) *
+                scipy.special.gammaincc(n / beta, x**beta) + 1)
 
     def distance(self, samples):
         """
@@ -77,19 +76,15 @@ class ConeLogPDF(ToyLogPDF):
         See :meth:`pints.toy.ToyLogPDF.distance()`.
         """
         # Check size of input
-        if not len(samples.shape) == 2:
+        if len(samples.shape) != 2:
             raise ValueError('Given samples list must be n x 2.')
         if samples.shape[1] != self.n_parameters():
-            raise ValueError(
-                'Given samples must have length ' +
-                str(self.n_parameters()))
+            raise ValueError(f'Given samples must have length {str(self.n_parameters())}')
         # calculate normed distance
         d = list(map(lambda x: np.linalg.norm(x), samples))
-        diff = (
-            np.abs(self.mean_normed() - np.mean(d)) +
-            np.abs(self.var_normed() - np.var(d))
+        return np.abs(self.mean_normed() - np.mean(d)) + np.abs(
+            self.var_normed() - np.var(d)
         )
-        return diff
 
     def evaluateS1(self, x):
         """ See :meth:`LogPDF.evaluateS1()`. """

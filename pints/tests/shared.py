@@ -30,8 +30,8 @@ class StreamCapture(object):
         self._capturing = False
 
         # Settings
-        self._stdout_enabled = True if stdout else False
-        self._stderr_enabled = True if stderr else False
+        self._stdout_enabled = bool(stdout)
+        self._stderr_enabled = bool(stderr)
 
         # Captured output
         self._stdout_captured = None
@@ -176,20 +176,21 @@ class SubCapture(object):
         """
         Starts capturing output to stdout and stderr.
         """
-        if not self._capturing:
-            # If possible, flush original outputs
-            try:
-                sys.stdout.flush()
-            except AttributeError:  # pragma: no cover
-                pass
-            try:
-                sys.stderr.flush()
-            except AttributeError:  # pragma: no cover
-                pass
+        if self._capturing:
+            return
+        # If possible, flush original outputs
+        try:
+            sys.stdout.flush()
+        except AttributeError:  # pragma: no cover
+            pass
+        try:
+            sys.stderr.flush()
+        except AttributeError:  # pragma: no cover
+            pass
 
-            # Save any redirected output / error streams
-            self._stdout = sys.stdout
-            self._stderr = sys.stderr
+        # Save any redirected output / error streams
+        self._stdout = sys.stdout
+        self._stderr = sys.stderr
 
             # Get file descriptors used for output and errors.
             #
@@ -202,86 +203,80 @@ class SubCapture(object):
             # fileno so that we can catch both cases at once in the rest of the
             # code.
             #
-            if sys.__stdout__ is not None:
-                self._stdout_fd = sys.__stdout__.fileno()
-            else:   # pragma: no cover
-                self._stdout_fd = -1
-            if sys.__stderr__ is not None:
-                self._stderr_fd = sys.__stderr__.fileno()
-            else:   # pragma: no cover
-                self._stderr_fd = -1
+        self._stdout_fd = sys.__stdout__.fileno() if sys.__stdout__ is not None else -1
+        self._stderr_fd = sys.__stderr__.fileno() if sys.__stderr__ is not None else -1
+        # If they're proper streams (so if not pythonw.exe), flush them
+        if self._stdout_fd >= 0:
+            sys.stdout.flush()
+        if self._stderr_fd >= 0:
+            sys.stderr.flush()
 
-            # If they're proper streams (so if not pythonw.exe), flush them
-            if self._stdout_fd >= 0:
-                sys.stdout.flush()
-            if self._stderr_fd >= 0:
-                sys.stderr.flush()
+        # Create temporary files
+        # Make sure this isn't opened in binary mode, and specify +
+        # for reading and writing.
+        self._file_out = tempfile.TemporaryFile(mode='w+')
+        self._file_err = tempfile.TemporaryFile(mode='w+')
 
-            # Create temporary files
-            # Make sure this isn't opened in binary mode, and specify +
-            # for reading and writing.
-            self._file_out = tempfile.TemporaryFile(mode='w+')
-            self._file_err = tempfile.TemporaryFile(mode='w+')
+        # Redirect python-level output to temporary files
+        # (Doing this is required to make this work on windows)
+        sys.stdout = self._file_out
+        sys.stderr = self._file_err
 
-            # Redirect python-level output to temporary files
-            # (Doing this is required to make this work on windows)
-            sys.stdout = self._file_out
-            sys.stderr = self._file_err
+        # If possible, pipe the original output and errors to files
+        # On windows, the order is important: First dup both stdout and
+        # stderr, then dup2 the new descriptors in. This prevents a weird
+        # infinite recursion on windows ipython / python shell.
+        self._dupout_fd = None
+        self._duperr_fd = None
+        if self._stdout_fd >= 0:
+            self._dupout_fd = os.dup(self._stdout_fd)
+        if self._stderr_fd >= 0:
+            self._duperr_fd = os.dup(self._stderr_fd)
+        if self._stdout_fd >= 0:
+            os.dup2(self._file_out.fileno(), self._stdout_fd)
+        if self._stderr_fd >= 0:
+            os.dup2(self._file_err.fileno(), self._stderr_fd)
 
-            # If possible, pipe the original output and errors to files
-            # On windows, the order is important: First dup both stdout and
-            # stderr, then dup2 the new descriptors in. This prevents a weird
-            # infinite recursion on windows ipython / python shell.
-            self._dupout_fd = None
-            self._duperr_fd = None
-            if self._stdout_fd >= 0:
-                self._dupout_fd = os.dup(self._stdout_fd)
-            if self._stderr_fd >= 0:
-                self._duperr_fd = os.dup(self._stderr_fd)
-            if self._stdout_fd >= 0:
-                os.dup2(self._file_out.fileno(), self._stdout_fd)
-            if self._stderr_fd >= 0:
-                os.dup2(self._file_err.fileno(), self._stderr_fd)
-
-            # Now we're capturing!
-            self._capturing = True
+        # Now we're capturing!
+        self._capturing = True
 
     def _stop_capturing(self):
         """
         Stops capturing output. If capturing was already halted, this does
         nothing.
         """
-        if self._capturing:
-            # Flush any remaining output
-            sys.stdout.flush()
-            sys.stderr.flush()
-            # Undo dupes, if made
-            if self._dupout_fd is not None:
-                os.dup2(self._dupout_fd, self._stdout_fd)
-                os.close(self._dupout_fd)
-            if self._duperr_fd is not None:
-                os.dup2(self._duperr_fd, self._stderr_fd)
-                os.close(self._duperr_fd)
-            # Reset python-level redirects
-            sys.stdout = self._stdout
-            sys.stderr = self._stderr
-            # Close temporary files and store capture output
-            try:
-                self._file_out.seek(0)
-                self._captured.extend(self._file_out.readlines())
-                self._file_out.close()
-            except ValueError:  # pragma: no cover
-                # In rare cases, I've seen a ValueError, "underlying buffer has
-                # been detached".
-                pass
-            try:
-                self._file_err.seek(0)
-                self._captured.extend(self._file_err.readlines())
-                self._file_err.close()
-            except ValueError:  # pragma: no cover
-                pass
-            # We've stopped capturing
-            self._capturing = False
+        if not self._capturing:
+            return
+        # Flush any remaining output
+        sys.stdout.flush()
+        sys.stderr.flush()
+        # Undo dupes, if made
+        if self._dupout_fd is not None:
+            os.dup2(self._dupout_fd, self._stdout_fd)
+            os.close(self._dupout_fd)
+        if self._duperr_fd is not None:
+            os.dup2(self._duperr_fd, self._stderr_fd)
+            os.close(self._duperr_fd)
+        # Reset python-level redirects
+        sys.stdout = self._stdout
+        sys.stderr = self._stderr
+        # Close temporary files and store capture output
+        try:
+            self._file_out.seek(0)
+            self._captured.extend(self._file_out.readlines())
+            self._file_out.close()
+        except ValueError:  # pragma: no cover
+            # In rare cases, I've seen a ValueError, "underlying buffer has
+            # been detached".
+            pass
+        try:
+            self._file_err.seek(0)
+            self._captured.extend(self._file_err.readlines())
+            self._file_err.close()
+        except ValueError:  # pragma: no cover
+            pass
+        # We've stopped capturing
+        self._capturing = False
 
     def text(self):
         return ''.join(self._captured)
@@ -321,7 +316,7 @@ class TemporaryDirectory(object):
                 ' context.')
 
         path = os.path.realpath(os.path.join(self._dir, path))
-        if path[0:len(self._dir)] != self._dir:
+        if path[: len(self._dir)] != self._dir:
             raise ValueError(
                 'Relative path specified to location outside of temporary'
                 ' directory.')

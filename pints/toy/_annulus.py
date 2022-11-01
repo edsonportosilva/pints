@@ -55,7 +55,7 @@ class AnnulusLogPDF(ToyLogPDF):
         self._sigma = sigma
 
     def __call__(self, x):
-        if not len(x) == self._n_parameters:
+        if len(x) != self._n_parameters:
             raise ValueError('x must be of same dimensions as density')
         return scipy.stats.norm.logpdf(
             np.linalg.norm(x), self._r0, self._sigma)
@@ -69,19 +69,15 @@ class AnnulusLogPDF(ToyLogPDF):
         See :meth:`ToyLogPDF.distance()`.
         """
         # Check size of input
-        if not len(samples.shape) == 2:
+        if len(samples.shape) != 2:
             raise ValueError('Given samples list must be n x 2.')
         if samples.shape[1] != self.n_parameters():
-            raise ValueError(
-                'Given samples must have length ' +
-                str(self.n_parameters()))
+            raise ValueError(f'Given samples must have length {str(self.n_parameters())}')
         # calculate normed distance
         d = list(map(lambda x: np.linalg.norm(x), samples))
-        dist = (
-            np.abs(self.mean_normed() - np.mean(d)) +
-            np.abs(self.var_normed() - np.var(d))
+        return np.abs(self.mean_normed() - np.mean(d)) + np.abs(
+            self.var_normed() - np.var(d)
         )
-        return dist
 
     def evaluateS1(self, x):
         """ See :meth:`LogPDF.evaluateS1()`.

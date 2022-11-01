@@ -172,12 +172,10 @@ class NestedSampler(pints.TunableMethod):
             self._n_evals += 1
             if np.isnan(fx) or fx < self._running_log_likelihood:
                 return None, np.array([[]])
-            else:
-                proposed = self._proposed
-                fx_temp = fx
-                winners = np.array([[]])
+            proposed = self._proposed
+            fx_temp = fx
+            winners = np.array([[]])
 
-        # if running in parallel, then fx will be a sequence
         else:
             a_len = len(fx)
             self._n_evals += a_len
@@ -327,15 +325,14 @@ class NestedController(object):
         Calculates difference in marginal likelihood between current and
         previous iterations.
         """
-        v_temp = np.concatenate((
-            self._v_log_Z[0:(i - 1)],
-            [np.max(self._sampler._m_active[:, d])]
-        ))
-        w_temp = np.concatenate((self._w[0:(i - 1)], [self._X[i]]))
-        self._diff = (
-            + logsumexp(self._v_log_Z[0:(i - 1)], b=self._w[0:(i - 1)])
-            - logsumexp(v_temp, b=w_temp)
+        v_temp = np.concatenate(
+            (self._v_log_Z[: i - 1], [np.max(self._sampler._m_active[:, d])])
         )
+
+        w_temp = np.concatenate((self._w[:i - 1], [self._X[i]]))
+        self._diff = +logsumexp(
+            self._v_log_Z[: i - 1], b=self._w[: i - 1]
+        ) - logsumexp(v_temp, b=w_temp)
 
     def effective_sample_size(self):
         r"""
@@ -375,11 +372,10 @@ class NestedController(object):
         if self._parallel:
             # Use at most n_workers workers
             n_workers = self._n_workers
-            evaluator = pints.ParallelEvaluator(
-                f, n_workers=n_workers)
+            return pints.ParallelEvaluator(f, n_workers=n_workers)
+
         else:
-            evaluator = pints.SequentialEvaluator(f)
-        return evaluator
+            return pints.SequentialEvaluator(f)
 
     def _initialise_logger(self):
         """
@@ -391,12 +387,11 @@ class NestedController(object):
 
             if self._log_to_screen:
                 # Show current settings
-                print('Running ' + self._sampler.name())
+                print(f'Running {self._sampler.name()}')
                 print('Number of active points: ' +
                       str(self._n_active_points))
-                print('Total number of iterations: ' + str(self._iterations))
-                print('Total number of posterior samples: ' + str(
-                    self._posterior_samples))
+                print(f'Total number of iterations: {str(self._iterations)}')
+                print(f'Total number of posterior samples: {str(self._posterior_samples)}')
 
             # Set up logger
             self._logger = pints.Logger()
@@ -419,7 +414,7 @@ class NestedController(object):
         """
         m_initial = self._log_prior.sample(self._n_active_points)
         v_fx = np.zeros(self._n_active_points)
-        for i in range(0, self._n_active_points):
+        for i in range(self._n_active_points):
             # Calculate likelihood
             v_fx[i] = self._evaluator.evaluate([m_initial[i, :]])[0]
             self._sampler._n_evals += 1
@@ -464,8 +459,7 @@ class NestedController(object):
         self._m_samples_all = np.vstack((self._m_inactive, m_active))
 
         # Determine log evidence
-        log_Z = logsumexp(self._v_log_Z,
-                          b=self._w[0:(self._iterations + 1)])
+        log_Z = logsumexp(self._v_log_Z, b=self._w[:self._iterations + 1])
         self._log_Z_called = True
         return log_Z
 
@@ -476,9 +470,10 @@ class NestedController(object):
         if not self._log_Z_called:
             self.marginal_log_likelihood()
         log_L_minus_Z = self._v_log_Z - self._log_Z
-        log_Z_sd = logsumexp(log_L_minus_Z,
-                             b=self._w[0:(self._iterations + 1)] *
-                             log_L_minus_Z)
+        log_Z_sd = logsumexp(
+            log_L_minus_Z, b=(self._w[: self._iterations + 1] * log_L_minus_Z)
+        )
+
         log_Z_sd = np.sqrt(log_Z_sd / self._sampler.n_active_points())
         return log_Z_sd
 
@@ -540,10 +535,9 @@ class NestedController(object):
         # Start timing
         self._timer = pints.Timer()
 
-        # Set up progress reporting
-        self._next_message = 0
         self._message_warm_up = 0
         self._message_interval = 20
+        self._next_message = 0
         self._initialise_logger()
 
         d = self._n_parameters
@@ -570,7 +564,7 @@ class NestedController(object):
         self._i_message = 0
         i_winners = 0
         m_previous_winners = []
-        for i in range(0, self._iterations):
+        for i in range(self._iterations):
             i_iter_complete = 0
             self._i = i
             a_min_index = self._sampler.min_index()
@@ -636,16 +630,13 @@ class NestedController(object):
                 if (np.abs(self._diff) <
                    self._marginal_log_likelihood_threshold):
                     if self._log_to_screen:
-                        print(                              # pragma: no cover
-                            'Convergence obtained with Delta_z = ' +
-                            str(self._diff))
+                        print(f'Convergence obtained with Delta_z = {str(self._diff)}')
 
                     # shorten arrays according to current iteration
                     self._iterations = i
-                    self._v_log_Z = self._v_log_Z[0:(self._iterations + 1)]
-                    self._w = self._w[0:(
-                        self._n_active_points + self._iterations)]
-                    self._X = self._X[0:(self._iterations + 1)]
+                    self._v_log_Z = self._v_log_Z[:self._iterations + 1]
+                    self._w = self._w[:self._n_active_points + self._iterations]
+                    self._X = self._X[:self._iterations + 1]
                     self._m_inactive = self._m_inactive[0:self._iterations, :]
                     break
 
@@ -683,11 +674,13 @@ class NestedController(object):
         # Draw posterior samples
         m_theta = self._m_samples_all[:, :-1]
         vIndex = np.random.choice(
-            range(0, self._iterations + self._sampler.n_active_points()),
-            size=posterior_samples, p=self._vP)
+            range(self._iterations + self._sampler.n_active_points()),
+            size=posterior_samples,
+            p=self._vP,
+        )
 
-        m_posterior_samples = m_theta[vIndex, :]
-        return m_posterior_samples
+
+        return m_theta[vIndex, :]
 
     def set_iterations(self, iterations):
         """
@@ -709,7 +702,7 @@ class NestedController(object):
         """
         if filename:
             self._log_filename = str(filename)
-            self._log_csv = True if csv else False
+            self._log_csv = bool(csv)
         else:
             self._log_filename = None
             self._log_csv = False
@@ -718,7 +711,7 @@ class NestedController(object):
         """
         Enables or disables logging to screen.
         """
-        self._log_to_screen = True if enabled else False
+        self._log_to_screen = bool(enabled)
 
     def set_marginal_log_likelihood_threshold(self, threshold):
         """

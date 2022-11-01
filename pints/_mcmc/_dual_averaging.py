@@ -99,13 +99,13 @@ class DualAveragingAdaption(object):
         self._target_accept_prob = target_accept_prob
 
         minimum_warmup_steps = self._initial_window + self._terminal_window + \
-            self._base_window
+                self._base_window
 
         if num_warmup_steps < minimum_warmup_steps:
             raise ValueError(
-                'Number of warmup steps less than the minimum value {}'.
-                format(minimum_warmup_steps)
+                f'Number of warmup steps less than the minimum value {minimum_warmup_steps}'
             )
+
 
         self._warmup_steps = num_warmup_steps
         self._next_window = self._initial_window + self._base_window
@@ -163,7 +163,7 @@ class DualAveragingAdaption(object):
 
         # adapt the sample covariance in a similar way to Stan
         return (samples / (samples + 5.0)) * sample_covariance \
-            + 1e-3 * (5.0 / (samples + 5.0)) * identity
+                + 1e-3 * (5.0 / (samples + 5.0)) * identity
 
     def final_epsilon(self):
         """
@@ -206,14 +206,14 @@ class DualAveragingAdaption(object):
         """
         if inv_mass_matrix.ndim == 1:
             self._mass_matrix = 1.0 / inv_mass_matrix
-            self._inv_mass_matrix = inv_mass_matrix
         else:
             try:
                 self._mass_matrix = np.linalg.inv(inv_mass_matrix)
             except np.linalg.LinAlgError:
                 print('WARNING: adapted mass matrix is ill-conditioned')
                 return
-            self._inv_mass_matrix = inv_mass_matrix
+
+        self._inv_mass_matrix = inv_mass_matrix
 
     def step(self, x, accept_prob):
         """

@@ -198,7 +198,7 @@ class MALAMCMC(pints.SingleChainMCMC):
             self._epsilon = self._step_size * self._scale_vector
         else:
             a = np.atleast_1d(epsilon)
-            if not len(a) == self._n_parameters:
+            if len(a) != self._n_parameters:
                 raise ValueError('Dimensions of epsilon must be same as ' +
                                  'number of parameters.')
             for element in epsilon:

@@ -170,7 +170,7 @@ class ToyODEModel(ToyModel):
         """
 
         # separating initial values of model outputs(y) and sensitivities(dydp)
-        y = y_and_dydp[0:self.n_states()]
+        y = y_and_dydp[:self.n_states()]
         dydp = y_and_dydp[self.n_states():].reshape((self.n_parameters(),
                                                      self.n_states()))
 
@@ -225,7 +225,7 @@ class ToyODEModel(ToyModel):
             n_params = self.n_parameters()
             n_outputs = self.n_states()
             y0 = np.zeros(n_params * n_outputs + n_outputs)
-            y0[0:n_outputs] = self._y0
+            y0[:n_outputs] = self._y0
             result = scipy.integrate.odeint(
                 self._rhs_S1, y0, times, (parameters,))
             values = result[:, 0:n_outputs]

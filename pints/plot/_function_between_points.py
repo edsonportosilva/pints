@@ -35,7 +35,7 @@ def function_between_points(f, point_1, point_2, padding=0.25, evaluations=20):
     import matplotlib.pyplot as plt
 
     # Check function and get n_parameters
-    if not (isinstance(f, pints.LogPDF) or isinstance(f, pints.ErrorMeasure)):
+    if not (isinstance(f, (pints.LogPDF, pints.ErrorMeasure))):
         raise ValueError(
             'Given function must be pints.LogPDF or pints.ErrorMeasure.')
     n_param = f.n_parameters()

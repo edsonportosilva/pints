@@ -67,7 +67,7 @@ class LogisticModel(pints.ForwardModelS1, ToyModel):
         if self._p0 == 0 or k < 0:
             if sensitivities:
                 return np.zeros(times.shape), \
-                    np.zeros((len(times), len(parameters)))
+                        np.zeros((len(times), len(parameters)))
             else:
                 return np.zeros(times.shape)
 
@@ -80,7 +80,7 @@ class LogisticModel(pints.ForwardModelS1, ToyModel):
             dvalues_dp = np.empty((len(times), len(parameters)))
             dvalues_dp[:, 0] = k * times * c * exp / (c * exp + 1)**2
             dvalues_dp[:, 1] = -k * exp / \
-                (self._p0 * (c * exp + 1)**2) + 1 / (c * exp + 1)
+                    (self._p0 * (c * exp + 1)**2) + 1 / (c * exp + 1)
             return values, dvalues_dp
         else:
             return values

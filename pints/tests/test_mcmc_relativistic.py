@@ -207,7 +207,7 @@ class TestRelativisticMCMC(unittest.TestCase):
         mag = 1.7
         f1 = model._momentum_logpdf(mag)
         f2 = np.exp(-m * c**2 * np.sqrt(mag ** 2 / (m**2 * c**2) + 1)) \
-            * mag ** (n - 1)
+                * mag ** (n - 1)
 
         self.assertAlmostEqual(f1, np.log(f2))
 

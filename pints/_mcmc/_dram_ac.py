@@ -119,17 +119,33 @@ class DramACMC(pints.AdaptiveCovarianceMC):
                     x=Y[n - i - 1],
                     mean=Y[n + 1],
                     cov=self._sigma[n],
-                    allow_singular=True) -
-                stats.multivariate_normal.logpdf(
+                    allow_singular=True,
+                )
+                - stats.multivariate_normal.logpdf(
                     x=Y[i],
                     mean=self._current,
                     cov=self._sigma[0],
-                    allow_singular=True) +
-                np.log(1 - np.exp(self._calculate_alpha_log(
-                    i, Y_rev[0:(i + 2)], log_Y_rev[0:(i + 2)]))) -
-                np.log(1 - np.exp(self._calculate_alpha_log(
-                    i, Y[0:(i + 2)], log_Y[0:(i + 2)])))
+                    allow_singular=True,
+                )
+                + np.log(
+                    (
+                        1
+                        - np.exp(
+                            self._calculate_alpha_log(
+                                i, Y_rev[: i + 2], log_Y_rev[: i + 2]
+                            )
+                        )
+                    )
+                )
+            ) - np.log(
+                (
+                    1
+                    - np.exp(
+                        self._calculate_alpha_log(i, Y[: i + 2], log_Y[: i + 2])
+                    )
+                )
             )
+
         return min(0, alpha_log)
 
     def _calculate_r_log(self, fx):
@@ -137,9 +153,8 @@ class DramACMC(pints.AdaptiveCovarianceMC):
         Calculates value of logged acceptance ratio (eq. 3 in [1]_).
         """
         c = self._proposal_count
-        temp_Y = np.concatenate([[self._current], self._Y[0:(c + 1)]])
-        temp_log_Y = np.concatenate(
-            [[self._current_log_pdf], self._Y_log_pdf[0:(c + 1)]])
+        temp_Y = np.concatenate([[self._current], self._Y[:c + 1]])
+        temp_log_Y = np.concatenate([[self._current_log_pdf], self._Y_log_pdf[:c + 1]])
         self._r_log = self._calculate_alpha_log(c, temp_Y, temp_log_Y)
 
     def _generate_proposal(self):

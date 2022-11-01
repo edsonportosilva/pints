@@ -68,8 +68,7 @@ class MCMCSummary(object):
 
         # Check parameter names, if supplied
         if parameter_names is None:
-            parameter_names = [
-                'param ' + str(i + 1) for i in range(self._n_parameters)]
+            parameter_names = [f'param {str(i + 1)}' for i in range(self._n_parameters)]
         elif self._n_parameters != len(parameter_names):
             raise ValueError(
                 'Parameter names list must be same length as number of '
@@ -152,14 +151,14 @@ class MCMCSummary(object):
 
         # Effective sample size
         self._ess = np.zeros(self._n_parameters)
-        for i, chain in enumerate(self._chains):
+        for chain in self._chains:
             self._ess += pints.effective_sample_size(chain)
 
         if self._time is not None:
             self._ess_per_second = np.array(self._ess) / self._time
 
         # Create
-        for i in range(0, self._n_parameters):
+        for i in range(self._n_parameters):
             row = [
                 self._parameter_names[i],
                 self._mean[i],

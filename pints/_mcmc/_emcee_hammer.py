@@ -102,8 +102,7 @@ class EmceeHammerMCMC(pints.MultiChainMCMC):
         """
         free_chains = list(range(self._n_chains))
         free_chains.remove(current_index)
-        other_index = np.random.choice(free_chains)
-        return other_index
+        return np.random.choice(free_chains)
 
     def _sample_z(self, a):
         """

@@ -120,7 +120,7 @@ class TestBareCMAES(unittest.TestCase):
         opt = method(x)
 
         e = pints.ParallelEvaluator(r)
-        for i in range(10):
+        for _ in range(10):
             opt.tell(e.evaluate(opt.ask()))
 
         # Get covariance matrix: check shape and symmetry

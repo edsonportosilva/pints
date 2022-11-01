@@ -76,18 +76,17 @@ class RosenbrockLogPDF(ToyLogPDF):
         See :meth:`pints.toy.ToyLogPDF.distance()`.
         """
         # Check size of input
-        if not len(samples.shape) == 2:
+        if len(samples.shape) != 2:
             raise ValueError('Given samples list must be n x 2.')
         if samples.shape[1] != self._f.n_parameters():
             raise ValueError(
-                'Given samples must have length ' +
-                str(self._f.n_parameters()))
+                f'Given samples must have length {str(self._f.n_parameters())}'
+            )
 
-        distance = (
-            np.linalg.norm(self._true_mean - np.mean(samples, axis=0)) +
-            np.linalg.norm(self._true_cov - np.cov(np.transpose(samples)))
-        )
-        return distance
+
+        return np.linalg.norm(
+            self._true_mean - np.mean(samples, axis=0)
+        ) + np.linalg.norm(self._true_cov - np.cov(np.transpose(samples)))
 
     def evaluateS1(self, x):
         """ See :meth:`LogPDF.evaluateS1()`. """

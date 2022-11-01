@@ -88,11 +88,10 @@ class GaussianLogPDF(ToyLogPDF):
         See: https://en.wikipedia.org/wiki/Kullback-Leibler_divergence
         """
         # Check size of input
-        if not len(samples.shape) == 2:
+        if len(samples.shape) != 2:
             raise ValueError('Given samples list must be n x 2.')
         if samples.shape[1] != self._n_parameters:
-            raise ValueError(
-                'Given samples must have length ' + str(self._n_parameters))
+            raise ValueError(f'Given samples must have length {str(self._n_parameters)}')
 
         # From wikipedia:
         #

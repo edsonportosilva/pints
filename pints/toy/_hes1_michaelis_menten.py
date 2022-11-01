@@ -133,11 +133,13 @@ class Hes1Model(ToyODEModel, pints.ForwardModelS1):
         """
         m, p1, p2 = state
         P0, v, k1, h = parameters
-        output = np.array([
-            - self._kdeg * m + 1. / (1. + (p2 / P0)**h),
-            - self._kdeg * p1 + v * m - k1 * p1,
-            - self._kdeg * p2 + k1 * p1])
-        return output
+        return np.array(
+            [
+                -self._kdeg * m + 1.0 / (1.0 + (p2 / P0) ** h),
+                -self._kdeg * p1 + v * m - k1 * p1,
+                -self._kdeg * p2 + k1 * p1,
+            ]
+        )
 
     def set_m0(self, m0):
         """
@@ -162,10 +164,9 @@ class Hes1Model(ToyODEModel, pints.ForwardModelS1):
         """
         Returns all state variables that ``simulate()`` does not return.
         """
-        solved_states = scipy.integrate.odeint(
-            self._rhs, self._y0, times, args=(parameters,))
-        # Return all states
-        return solved_states
+        return scipy.integrate.odeint(
+            self._rhs, self._y0, times, args=(parameters,)
+        )
 
     def suggested_parameters(self):
         """ See :meth:`pints.toy.ToyModel.suggested_parameters()`. """

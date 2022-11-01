@@ -98,10 +98,7 @@ class SimpleHarmonicOscillatorModel(pints.ForwardModelS1, ToyModel):
                 dvalues_dp[:, 0] = exp5 * (1 + times)
                 dvalues_dp[:, 1] = exp5 * times
                 dvalues_dp[:, 2] = np.zeros(len(times))
-        if sensitivities:
-            return values, dvalues_dp
-        else:
-            return values
+        return (values, dvalues_dp) if sensitivities else values
 
     def suggested_parameters(self):
         """ See :meth:`pints.toy.ToyModel.suggested_parameters()`. """

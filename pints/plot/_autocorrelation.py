@@ -39,7 +39,7 @@ def autocorrelation(samples, max_lags=100, parameter_names=None):
 
     # Check parameter names
     if parameter_names is None:
-        parameter_names = ['Parameter' + str(i + 1) for i in range(n_param)]
+        parameter_names = [f'Parameter{str(i + 1)}' for i in range(n_param)]
     elif len(parameter_names) != n_param:
         raise ValueError(
             'Length of `parameter_names` must be same as number of'

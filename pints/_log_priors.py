@@ -196,7 +196,7 @@ class ComposedLogPrior(pints.LogPrior):
 
     def __init__(self, *priors):
         # Check if sub-priors given
-        if len(priors) < 1:
+        if not priors:
             raise ValueError('Must have at least one sub-prior')
 
         # Check if proper priors, count dimension
@@ -225,10 +225,7 @@ class ComposedLogPrior(pints.LogPrior):
         *This method only works if the underlying :class:`LogPrior` classes all
         implement the optional method :class:`LogPDF.cdf().`.*
         """
-        cdfs = []
-        for i, prior in enumerate(self._priors):
-            cdfs.append(prior.cdf(x[i]))
-        return cdfs
+        return [prior.cdf(x[i]) for i, prior in enumerate(self._priors)]
 
     def evaluateS1(self, x):
         """
@@ -255,10 +252,7 @@ class ComposedLogPrior(pints.LogPrior):
         *This method only works if the underlying :class:`LogPrior` classes all
         implement the optional method :class:`LogPDF.icdf().`.*
         """
-        icdfs = []
-        for i, prior in enumerate(self._priors):
-            icdfs.append(prior.icdf(x[i]))
-        return icdfs
+        return [prior.icdf(x[i]) for i, prior in enumerate(self._priors)]
 
     def n_parameters(self):
         """ See :meth:`LogPrior.n_parameters()`. """
@@ -312,10 +306,7 @@ class ExponentialLogPrior(pints.LogPrior):
         self._log_scale = np.log(self._rate)
 
     def __call__(self, x):
-        if x[0] < 0.0:
-            return -np.inf
-        else:
-            return self._log_scale - self._rate * x[0]
+        return -np.inf if x[0] < 0.0 else self._log_scale - self._rate * x[0]
 
     def cdf(self, x):
         """ See :meth:`LogPrior.cdf()`. """
@@ -537,10 +528,7 @@ class HalfCauchyLogPrior(pints.LogPrior):
         self._arctan = np.arctan(self._location / self._scale) / np.pi
 
     def __call__(self, x):
-        if x[0] > 0:
-            return self._norm_factor + self._cauchy(x)
-        else:
-            return -np.inf
+        return self._norm_factor + self._cauchy(x) if x[0] > 0 else -np.inf
 
     def cdf(self, x):
         """ See :meth:`LogPrior.cdf()`. """
@@ -647,8 +635,7 @@ class InverseGammaLogPrior(pints.LogPrior):
         if _x < 0.0:
             return val, np.asarray([0.])
         else:
-            return val, np.asarray(
-                [np.divide(self._b - self._ap1 * _x, _x * _x)])
+            return val, np.asarray([np.divide(self._b - self._ap1 * _x, _x**2)])
 
     def mean(self):
         """ See :meth:`LogPrior.mean()`. """
@@ -703,16 +690,15 @@ class LogNormalLogPrior(pints.LogPrior):
         # Cache constants
         self._offset = -np.log(self._scale * np.sqrt(2. * np.pi))
         self._1on2sigsq = 1. / (2. * self._scale * self._scale)
-        self._m1onsigsq = -1. / (self._scale * self._scale)
-        self._sigsqmmu = self._scale * self._scale - self._log_mean
+        self._m1onsigsq = -1. / self._scale**2
+        self._sigsqmmu = self._scale**2 - self._log_mean
 
     def __call__(self, x):
         if x[0] <= 0.0:
             return -np.inf
-        else:
-            _lx = np.log(x[0])
-            _shift = _lx - self._log_mean
-            return self._offset - _lx - self._1on2sigsq * _shift * _shift
+        _lx = np.log(x[0])
+        _shift = _lx - self._log_mean
+        return self._offset - _lx - self._1on2sigsq * _shift * _shift
 
     def cdf(self, x):
         """ See :meth:`LogPrior.cdf()`. """
@@ -723,11 +709,10 @@ class LogNormalLogPrior(pints.LogPrior):
         """ See :meth:`LogPDF.evaluateS1()`. """
         if x[0] < 0.0:
             return self(x), np.asarray([0.])
-        else:
-            _x = x[0]
-            _lx = np.log(_x)
-            return self(x), np.asarray(
-                [self._m1onsigsq * np.divide(self._sigsqmmu + _lx, _x)])
+        _x = x[0]
+        _lx = np.log(_x)
+        return self(x), np.asarray(
+            [self._m1onsigsq * np.divide(self._sigsqmmu + _lx, _x)])
 
     def icdf(self, p):
         """ See :meth:`LogPrior.icdf()`. """
@@ -791,7 +776,7 @@ class MultivariateGaussianLogPrior(pints.LogPrior):
             self._cov)
         log_det_cov = 2 * np.sum(np.log(self._cholesky_L.diagonal()))
         self._const_factor = - 0.5 * log_det_cov \
-                             - 0.5 * len(self._mean) * np.log(2 * np.pi)
+                                 - 0.5 * len(self._mean) * np.log(2 * np.pi)
 
         # Factors needed for pseudo-cdf calculation
         self._sigma12_sigma22_inv_l = []
@@ -807,8 +792,8 @@ class MultivariateGaussianLogPrior(pints.LogPrior):
             sigma22 = sigma[0:(dims[0] - 1), 0:(dims[0] - 1)]
             sigma12 = sigma[dims[0] - 1, 0:(dims[0] - 1)]
             sigma21 = sigma[0:(dims[0] - 1), dims[0] - 1]
-            mean = self._mean[0:dims[0]]
-            mu2 = mean[0:(dims[0] - 1)]
+            mean = self._mean[:dims[0]]
+            mu2 = mean[:dims[0] - 1]
             mu1 = mean[dims[0] - 1]
             sigma12_sigma22_inv = np.matmul(sigma12,
                                             np.linalg.inv(sigma22))
@@ -882,17 +867,13 @@ class MultivariateGaussianLogPrior(pints.LogPrior):
         if not isinstance(xs, np.ndarray):
             if not isinstance(xs, list):
                 xs = [xs]
-            if any(isinstance(a, list) for a in xs):
-                xs = np.array(xs)
-            else:
-                xs = np.array([xs])
+            xs = np.array(xs) if any(isinstance(a, list) for a in xs) else np.array([xs])
             n_samples = xs.shape[0]
             n_params = xs.shape[1]
-        else:
-            if len(xs.shape) == 1:
-                n_params = xs.shape[0]
-                n_samples = 1
-                xs = np.reshape(xs, (n_samples, n_params))
+        elif len(xs.shape) == 1:
+            n_params = xs.shape[0]
+            n_samples = 1
+            xs = np.reshape(xs, (n_samples, n_params))
         if n_params != self._n_parameters:
             raise ValueError(
                 "Dimensions of samples must match prior dimensions.")
@@ -908,10 +889,7 @@ class MultivariateGaussianLogPrior(pints.LogPrior):
                         self._sigma12_sigma22_inv_l[i - 1],
                         (xs[j, 0:i] - self._mu2[i - 1]))
                 cdfs[j, i] = scipy.stats.norm.cdf(xs[j, i], mu, sigma)
-        if n_samples == 1:
-            return cdfs[0]
-        else:
-            return cdfs
+        return cdfs[0] if n_samples == 1 else cdfs
 
     def pseudo_icdf(self, ps):
         r"""
@@ -939,17 +917,13 @@ class MultivariateGaussianLogPrior(pints.LogPrior):
         if not isinstance(ps, np.ndarray):
             if not isinstance(ps, list):
                 ps = [ps]
-            if any(isinstance(a, list) for a in ps):
-                ps = np.array(ps)
-            else:
-                ps = np.array([ps])
+            ps = np.array(ps) if any(isinstance(a, list) for a in ps) else np.array([ps])
             n_samples = ps.shape[0]
             n_params = ps.shape[1]
-        else:
-            if len(ps.shape) == 1:
-                n_params = ps.shape[0]
-                n_samples = 1
-                ps = np.reshape(ps, (n_samples, n_params))
+        elif len(ps.shape) == 1:
+            n_params = ps.shape[0]
+            n_samples = 1
+            ps = np.reshape(ps, (n_samples, n_params))
         if n_params != self._n_parameters:
             raise ValueError(
                 "Dimensions of samples must match prior dimensions.")
@@ -965,10 +939,7 @@ class MultivariateGaussianLogPrior(pints.LogPrior):
                         self._sigma12_sigma22_inv_l[i - 1],
                         (np.array(icdfs[j, 0:i]) - self._mu2[i - 1]))
                 icdfs[j, i] = scipy.stats.norm.ppf(ps[j, i], mu, sigma)
-        if n_samples == 1:
-            return icdfs[0]
-        else:
-            return icdfs
+        return icdfs[0] if n_samples == 1 else icdfs
 
     def sample(self, n=1):
         """ See :meth:`LogPrior.call()`. """
@@ -1039,7 +1010,7 @@ class StudentTLogPrior(pints.LogPrior):
         # Cache constants
         self._log_df = np.log(self._df)
 
-        self._1_sig_sq = 1. / (self._scale * self._scale)
+        self._1_sig_sq = 1. / self._scale**2
 
         self._first = 0.5 * (1.0 + self._df)
 
@@ -1257,17 +1228,13 @@ class UniformLogPrior(pints.LogPrior):
         if not isinstance(xs, np.ndarray):
             if not isinstance(xs, list):
                 xs = [xs]
-            if any(isinstance(a, list) for a in xs):
-                xs = np.array(xs)
-            else:
-                xs = np.array([xs])
+            xs = np.array(xs) if any(isinstance(a, list) for a in xs) else np.array([xs])
             n_samples = xs.shape[0]
             n_params = xs.shape[1]
-        else:
-            if len(xs.shape) == 1:
-                n_params = xs.shape[0]
-                n_samples = 1
-                xs = np.reshape(xs, (n_samples, n_params))
+        elif len(xs.shape) == 1:
+            n_params = xs.shape[0]
+            n_samples = 1
+            xs = np.reshape(xs, (n_samples, n_params))
         if n_params != self._n_parameters:
             raise ValueError(
                 "Dimensions of samples must match prior dimensions.")
@@ -1283,27 +1250,20 @@ class UniformLogPrior(pints.LogPrior):
                     cdfs[j, i] = 1.0
                 else:
                     cdfs[j, i] = 0.0
-        if n_samples == 1:
-            return cdfs[0]
-        else:
-            return cdfs
+        return cdfs[0] if n_samples == 1 else cdfs
 
     def icdf(self, ps):
         """ See :meth:`LogPrior.icdf()`. """
         if not isinstance(ps, np.ndarray):
             if not isinstance(ps, list):
                 ps = [ps]
-            if any(isinstance(a, list) for a in ps):
-                ps = np.array(ps)
-            else:
-                ps = np.array([ps])
+            ps = np.array(ps) if any(isinstance(a, list) for a in ps) else np.array([ps])
             n_samples = ps.shape[0]
             n_params = ps.shape[1]
-        else:
-            if len(ps.shape) == 1:
-                n_params = ps.shape[0]
-                n_samples = 1
-                ps = np.reshape(ps, (n_samples, n_params))
+        elif len(ps.shape) == 1:
+            n_params = ps.shape[0]
+            n_samples = 1
+            ps = np.reshape(ps, (n_samples, n_params))
         if n_params != self._n_parameters:
             raise ValueError(
                 "Dimensions of samples must match prior dimensions.")
@@ -1318,10 +1278,7 @@ class UniformLogPrior(pints.LogPrior):
                     icdfs[j, i] = self._boundaries.lower()[i]
                 else:
                     icdfs[j, i] = self._boundaries.upper()[i]
-        if n_samples == 1:
-            return icdfs[0]
-        else:
-            return icdfs
+        return icdfs[0] if n_samples == 1 else icdfs
 
     def evaluateS1(self, x):
         """ See :meth:`LogPrior.evaluateS1()`. """

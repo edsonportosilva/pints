@@ -90,16 +90,17 @@ class Optimiser(pints.Loggable, pints.TunableMethod):
 
         # Store boundaries
         self._boundaries = boundaries
-        if self._boundaries:
-            if self._boundaries.n_parameters() != self._n_parameters:
-                raise ValueError(
-                    'Boundaries must have same dimension as starting point.')
+        if (
+            self._boundaries
+            and self._boundaries.n_parameters() != self._n_parameters
+        ):
+            raise ValueError(
+                'Boundaries must have same dimension as starting point.')
 
         # Check initial position is within boundaries
-        if self._boundaries:
-            if not self._boundaries.check(self._x0):
-                raise ValueError(
-                    'Initial position must lie within given boundaries.')
+        if self._boundaries and not self._boundaries.check(self._x0):
+            raise ValueError(
+                'Initial position must lie within given boundaries.')
 
         # Check initial standard deviation
         if sigma0 is None:
@@ -592,12 +593,11 @@ class OptimisationController(object):
                     print('Maximising LogPDF')
 
                 # Show method
-                print('Using ' + str(self._optimiser.name()))
+                print(f'Using {str(self._optimiser.name())}')
 
                 # Show parallelisation
                 if self._parallel:
-                    print('Running in parallel with ' + str(n_workers) +
-                          ' worker processes.')
+                    print(f'Running in parallel with {str(n_workers)} worker processes.')
                 else:
                     print('Running in sequential mode.')
 
@@ -606,7 +606,7 @@ class OptimisationController(object):
             if isinstance(self._optimiser, PopulationBasedOptimiser):
                 pop_size = self._optimiser.population_size()
                 if self._log_to_screen:
-                    print('Population size: ' + str(pop_size))
+                    print(f'Population size: {str(pop_size)}')
 
             # Set up logger
             logger = pints.Logger()
@@ -680,28 +680,23 @@ class OptimisationController(object):
                 if (self._max_iterations is not None and
                         iteration >= self._max_iterations):
                     running = False
-                    halt_message = ('Maximum number of iterations ('
-                                    + str(iteration) + ') reached.')
+                    halt_message = f'Maximum number of iterations ({iteration}) reached.'
 
                 # Maximum number of iterations without significant change
                 halt = (self._unchanged_max_iterations is not None and
                         unchanged_iterations >= self._unchanged_max_iterations)
                 if running and halt:
                     running = False
-                    halt_message = ('No significant change for ' +
-                                    str(unchanged_iterations) + ' iterations.')
+                    halt_message = f'No significant change for {unchanged_iterations} iterations.'
 
                 # Threshold value
                 halt = (self._threshold is not None
                         and f_new < self._threshold)
                 if running and halt:
                     running = False
-                    halt_message = ('Objective function crossed threshold: '
-                                    + str(self._threshold) + '.')
+                    halt_message = f'Objective function crossed threshold: {str(self._threshold)}.'
 
-                # Error in optimiser
-                error = self._optimiser.stop()
-                if error:   # pragma: no cover
+                if error := self._optimiser.stop():
                     running = False
                     halt_message = str(error)
 
@@ -713,7 +708,7 @@ class OptimisationController(object):
             # Show last result and exit
             print('\n' + '-' * 40)
             print('Unexpected termination.')
-            print('Current score: ' + str(fg_user))
+            print(f'Current score: {str(fg_user)}')
             print('Current position:')
 
             # Show current parameters
@@ -735,7 +730,7 @@ class OptimisationController(object):
                 self._optimiser._log_write(logger)
                 logger.log(self._time)
             if self._log_to_screen:
-                print('Halting: ' + halt_message)
+                print(f'Halting: {halt_message}')
 
         # Save post-run statistics
         self._evaluations = evaluations
@@ -816,7 +811,7 @@ class OptimisationController(object):
         """
         if filename:
             self._log_filename = str(filename)
-            self._log_csv = True if csv else False
+            self._log_csv = bool(csv)
         else:
             self._log_filename = None
             self._log_csv = False
@@ -825,7 +820,7 @@ class OptimisationController(object):
         """
         Enables or disables logging to screen.
         """
-        self._log_to_screen = True if enabled else False
+        self._log_to_screen = bool(enabled)
 
     def set_max_iterations(self, iterations=10000):
         """
@@ -894,10 +889,7 @@ class OptimisationController(object):
         this method with a valid ``threshold``. To disable it, use
         ``set_treshold(None)``.
         """
-        if threshold is None:
-            self._threshold = None
-        else:
-            self._threshold = float(threshold)
+        self._threshold = None if threshold is None else float(threshold)
 
     def threshold(self):
         """
@@ -1076,7 +1068,7 @@ def curve_fit(f, x, y, p0, boundaries=None, threshold=None, max_iter=None,
     opt.set_parallel(parallel)
 
     # Set output
-    opt.set_log_to_screen(True if verbose else False)
+    opt.set_log_to_screen(bool(verbose))
 
     # Run and return
     return opt.run()
@@ -1184,7 +1176,7 @@ def fmin(f, x0, args=None, boundaries=None, threshold=None, max_iter=None,
     opt.set_parallel(parallel)
 
     # Set output
-    opt.set_log_to_screen(True if verbose else False)
+    opt.set_log_to_screen(bool(verbose))
 
     # Run and return
     return opt.run()

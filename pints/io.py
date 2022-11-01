@@ -42,12 +42,12 @@ def load_samples(filename, n=None):
         raise ValueError(
             'Argument `n` must be `None` or an integer greater than zero.')
     parts = os.path.splitext(filename)
-    filenames = [parts[0] + '_' + str(i) + parts[1] for i in range(n)]
+    filenames = [f'{parts[0]}_{str(i)}{parts[1]}' for i in range(n)]
 
     # Check if files exist before loading (saves times)
     for filename in filenames:
         if not os.path.isfile(filename):
-            raise FileNotFoundError('File not found: ' + filename)
+            raise FileNotFoundError(f'File not found: {filename}')
 
     # Load and return
     return [load(filename) for filename in filenames]
@@ -80,7 +80,7 @@ def save_samples(filename, *sample_lists):
         filenames = [filename]
     else:
         parts = os.path.splitext(filename)
-        filenames = [parts[0] + '_' + str(i) + parts[1] for i in range(k)]
+        filenames = [f'{parts[0]}_{str(i)}{parts[1]}' for i in range(k)]
 
     # Check shapes
     try:

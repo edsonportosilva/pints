@@ -63,7 +63,7 @@ def run_copyright_checks():
 
     with open('LICENSE.md', 'r') as license_file:
         license_text = license_file.read()
-        if 'Copyright (c) 2017-' + current_year in license_text:
+        if f'Copyright (c) 2017-{current_year}' in license_text:
             print("Copyright notice in LICENSE.md is up-to-date.")
         else:
             print('Copyright notice in LICENSE.md is NOT up-to-date.')
@@ -81,11 +81,11 @@ def run_copyright_checks():
 
     for dirname, subdir_list, file_list in os.walk('pints'):
         for f_name in file_list:
-            if any([f_name.endswith(x) for x in checked_file_types]):
+            if any(f_name.endswith(x) for x in checked_file_types):
                 path = os.path.join(dirname, f_name)
                 with open(path, 'r') as f:
                     if copyright_header not in f.read():
-                        print('Copyright blurb missing from ' + path)
+                        print(f'Copyright blurb missing from {path}')
                         header_check = False
 
     if header_check:
@@ -101,7 +101,7 @@ def run_doctests():
     Runs a number of tests related to documentation
     """
 
-    print('\n{}\n# Starting doctests... #\n{}\n'.format('#' * 24, '#' * 24))
+    print(f"\n{'#' * 24}\n# Starting doctests... #\n{'#' * 24}\n")
 
     # Check documentation can be built with sphinx
     doctest_sphinx()
@@ -113,7 +113,7 @@ def run_doctests():
     # unintended modules are exposed via a public interface
     doctest_rst_and_public_interface()
 
-    print('\n{}\n# Doctests passed. #\n{}\n'.format('#' * 20, '#' * 20))
+    print(f"\n{'#' * 20}\n# Doctests passed. #\n{'#' * 20}\n")
 
 
 def doctest_sphinx():
@@ -163,18 +163,14 @@ def doctest_examples_readme():
     notebooks = [x[9:] for x in list_notebooks('examples')]
     assert(len(notebooks) > 10)
 
-    # Find which are not indexed
-    not_indexed = [nb for nb in notebooks if nb not in index_contents]
-
-    # Report any failures
-    if len(not_indexed) > 0:
-        print('The following notebooks are not indexed in %s:' % index_file)
+    if not_indexed := [nb for nb in notebooks if nb not in index_contents]:
+        print(f'The following notebooks are not indexed in {index_file}:')
         for nb in sorted(not_indexed):
             print(nb)
         print('FAILED')
         sys.exit(1)
     else:
-        print('All ' + str(len(notebooks)) + ' example notebooks are indexed.')
+        print(f'All {len(notebooks)} example notebooks are indexed.')
 
 
 def doctest_rst_and_public_interface():
@@ -247,47 +243,48 @@ def check_exposed_symbols(module, submodule_names, doc_symbols):
 
     # Check for modules: these should match perfectly with _submodule_names
     exposed_modules = [x for x in symbols if inspect.ismodule(x)]
-    unexpected_modules = [m for m in exposed_modules if
-                          m.__name__ not in submodule_names]
+    if unexpected_modules := [
+        m for m in exposed_modules if m.__name__ not in submodule_names
+    ]:
+        print(
+            f'The following modules are unexpectedly exposed in the public interface of {module.__name__}:'
+        )
 
-    if len(unexpected_modules) > 0:
-        print('The following modules are unexpectedly exposed in the public '
-              'interface of %s:' % module.__name__)
         for m in sorted(unexpected_modules, key=lambda x: x.__name__):
-            print('  unexpected module: ' + m.__name__)
+            print(f'  unexpected module: {m.__name__}')
 
-        print('For python modules such as numpy you may need to confine the '
-              'import to the function scope. If you have created a new pints '
-              'submodule, you will need to make %s (doctest) aware of this.'
-              % __file__)
+        print(
+            f'For python modules such as numpy you may need to confine the import to the function scope. If you have created a new pints submodule, you will need to make {__file__} (doctest) aware of this.'
+        )
+
         print('FAILED')
         sys.exit(1)
 
     # Check that all classes are documented
     undocumented_classes = []
     for _class in classes:
-        class_name = module.__name__ + '.' + _class.__name__
+        class_name = f'{module.__name__}.{_class.__name__}'
         if class_name not in doc_symbols['classes']:
             undocumented_classes.append(class_name)
 
-    if len(undocumented_classes) > 0:
+    if undocumented_classes:
         print('The following classes do not appear in any RST file:')
         for m in sorted(undocumented_classes):
-            print('  undocumented class: ' + m)
+            print(f'  undocumented class: {m}')
         print('FAILED')
         sys.exit(1)
 
     # Check that all functions are documented
     undocumented_functions = []
     for _funct in functions:
-        funct_name = module.__name__ + '.' + _funct.__name__
+        funct_name = f'{module.__name__}.{_funct.__name__}'
         if funct_name not in doc_symbols['functions']:
             undocumented_functions.append(funct_name)
 
-    if len(undocumented_functions) > 0:
+    if undocumented_functions:
         print('The following functions do not appear in any RST file:')
         for m in sorted(undocumented_functions):
-            print('  undocumented function: ' + m)
+            print(f'  undocumented function: {m}')
         print('FAILED')
         sys.exit(1)
 
@@ -302,9 +299,9 @@ def get_all_documented_symbols():
 
     doc_files = []
     for root, dirs, files in os.walk(os.path.join('docs', 'source')):
-        for file in files:
-            if file.endswith('.rst'):
-                doc_files.append(os.path.join(root, file))
+        doc_files.extend(
+            os.path.join(root, file) for file in files if file.endswith('.rst')
+        )
 
     # Regular expression that would find either 'module' or 'currentmodule':
     # this needs to be prepended to the symbols as x.y.z != x.z
@@ -320,18 +317,16 @@ def get_all_documented_symbols():
         with open(doc_file, 'r') as f:
             # We need to identify which module each class or function is in
             module = ''
-            for line in f.readlines():
+            for line in f:
                 m_match = re.search(regex_module, line)
                 c_match = re.search(regex_class, line)
                 f_match = re.search(regex_funct, line)
                 if m_match:
-                    module = m_match.group(1) + '.'
+                    module = f'{m_match[1]}.'
                 elif c_match:
-                    documented_symbols['classes'].append(
-                        module + c_match.group(1))
+                    documented_symbols['classes'].append(module + c_match[1])
                 elif f_match:
-                    documented_symbols['functions'].append(
-                        module + f_match.group(1))
+                    documented_symbols['functions'].append(module + f_match[1])
 
     # Validate the list for any duplicate documentation
     for symbols in documented_symbols.values():
@@ -339,9 +334,9 @@ def get_all_documented_symbols():
             print('The following symbols are unexpectedly documented multiple '
                   'times in rst files:')
 
-            dupes = set([d for d in symbols if symbols.count(d) > 1])
+            dupes = {d for d in symbols if symbols.count(d) > 1}
             for d in dupes:
-                print('  multiple entries in docs: ' + d)
+                print(f'  multiple entries in docs: {d}')
 
             print('FAILED')
             sys.exit(1)
@@ -360,7 +355,7 @@ def run_notebook_tests():
     ]
     for ignored_book in ignore_list:
         if not os.path.isfile(ignored_book):
-            raise Exception('Ignored notebook not found: ' + ignored_book)
+            raise Exception(f'Ignored notebook not found: {ignored_book}')
 
     # Books in interfaces require extra dependences, so are ignored by
     # default
@@ -386,7 +381,7 @@ def run_notebook_interfaces_tests():
     ignore_list = []
     for ignored_book in ignore_list:
         if not os.path.isfile(ignored_book):
-            raise Exception('Ignored notebook not found: ' + ignored_book)
+            raise Exception(f'Ignored notebook not found: {ignored_book}')
 
     # Scan and run
     print('Testing interfaces notebooks')
@@ -410,7 +405,7 @@ def list_notebooks(root, recursive=True, ignore_list=None, notebooks=None):
     for filename in os.listdir(root):
         path = os.path.join(root, filename)
         if path in ignore_list:
-            print('Skipping ignored notebook: ' + path)
+            print(f'Skipping ignored notebook: {path}')
             continue
 
         # Add notebooks
@@ -434,7 +429,7 @@ def test_notebook(path):
     import nbconvert
     import pints
     b = pints.Timer()
-    print('Running ' + path + ' ... ', end='')
+    print(f'Running {path} ... ', end='')
     sys.stdout.flush()
 
     # Load notebook, convert to python
@@ -475,7 +470,7 @@ def test_notebook(path):
         sys.exit(1)
 
     # Successfully run
-    print('ok (' + b.format() + ')')
+    print(f'ok ({b.format()})')
     return True
 
 

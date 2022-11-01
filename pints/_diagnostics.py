@@ -41,8 +41,7 @@ def effective_sample_size_single_parameter(x):
     rho = autocorrelation(x)
     T = _autocorrelate_negative(rho)
     n = len(x)
-    ess = n / (1 + 2 * np.sum(rho[0:T]))
-    return ess
+    return n / (1 + 2 * np.sum(rho[:T]))
 
 
 def effective_sample_size(samples):
@@ -61,8 +60,10 @@ def effective_sample_size(samples):
     if n_samples < 2:
         raise ValueError('At least two samples must be given.')
 
-    return [effective_sample_size_single_parameter(samples[:, i])
-            for i in range(0, n_params)]
+    return [
+        effective_sample_size_single_parameter(samples[:, i])
+        for i in range(n_params)
+    ]
 
 
 def _within(chains):
@@ -88,10 +89,7 @@ def _within(chains):
     # Compute unbiased within-chain variance estimate
     within_chain_var = np.var(chains, axis=1, ddof=1)
 
-    # Compute mean-within chain variance
-    w = np.mean(within_chain_var, axis=0)
-
-    return w
+    return np.mean(within_chain_var, axis=0)
 
 
 def _between(chains):
@@ -124,10 +122,7 @@ def _between(chains):
     # Compute variance across chains of within-chain means
     between_chain_var = np.var(within_chain_means, axis=0, ddof=1)
 
-    # Weight variance with number of samples per chain
-    b = n * between_chain_var
-
-    return b
+    return n * between_chain_var
 
 
 def rhat(chains, warm_up=0.0):
@@ -199,7 +194,7 @@ def rhat(chains, warm_up=0.0):
     rhat : float or np.ndarray of shape (p,)
         :math:`\hat{R}` of the posteriors for each parameter.
     """
-    if not (chains.ndim == 2 or chains.ndim == 3):
+    if chains.ndim not in [2, 3]:
         raise ValueError(
             'Dimension of chains is %d. ' % chains.ndim
             + 'Method computes Rhat for one '
@@ -231,10 +226,7 @@ def rhat(chains, warm_up=0.0):
     # Compute mean between-chain variance
     b = _between(chains)
 
-    # Compute Rhat
-    rhat = np.sqrt((n - 1.0) / n + b / (w * n))
-
-    return rhat
+    return np.sqrt((n - 1.0) / n + b / (w * n))
 
 
 def rhat_all_params(chains):

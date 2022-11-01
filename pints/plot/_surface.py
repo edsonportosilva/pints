@@ -175,7 +175,7 @@ def _voronoi_regions(x, y, f, xlim, ylim):
     radius2 = 2 * np.sqrt((xmax - xmin)**2 + (ymax - ymin)**2)
 
     # Create a list containing the set of vertices defining each region
-    regions = [set() for i in range(n)]
+    regions = [set() for _ in range(n)]
     for (p1, p2), (v1, v2) in zip(vor.ridge_points, vor.ridge_vertices):
         # Order the edges: if one of the edges extends to infinity, the value
         # v1/v2 will be -1. By ordering here we ensure that only v1 can ever be

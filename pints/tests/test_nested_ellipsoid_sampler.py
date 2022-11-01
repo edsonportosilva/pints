@@ -135,7 +135,7 @@ class TestNestedEllipsoidSampler(unittest.TestCase):
         c1 = sampler._centroid
         sampler.set_n_rejection_samples(100)
         sampler.set_ellipsoid_update_gap(10)
-        for i in range(5000):
+        for _ in range(5000):
             pt = sampler.ask(1)
             fx = self.log_likelihood(pt)
             sampler.tell(fx)
@@ -155,7 +155,7 @@ class TestNestedEllipsoidSampler(unittest.TestCase):
         # test multiple ask points after rejection samples
         sampler = pints.NestedEllipsoidSampler(self.log_prior)
         sampler.set_n_rejection_samples(10)
-        for i in range(100):
+        for _ in range(100):
             self.assertEqual(len(sampler.ask(20)), 20)
 
     def test_dynamic_enlargement_factor(self):

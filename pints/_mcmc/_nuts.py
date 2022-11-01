@@ -130,15 +130,8 @@ class NutsState(object):
             self.L_plus = other_state.L_plus
             self.grad_L_plus = other_state.grad_L_plus
 
-        # Notes: alpha and n_alpha are only accumulated within build_tree
-        # Update: perhaps not according to stan code...
-        if root:
-            self.alpha += other_state.alpha
-            self.n_alpha += other_state.n_alpha
-        else:
-            self.alpha += other_state.alpha
-            self.n_alpha += other_state.n_alpha
-
+        self.n_alpha += other_state.n_alpha
+        self.alpha += other_state.alpha
         # propogate divergence up the tree
         self.divergent |= other_state.divergent
 
@@ -431,11 +424,7 @@ def nuts_sampler(x0, delta, num_adaption_steps, sigma0,
 
             # pick a random direction to integrate in
             # (to maintain detailed balance)
-            if np.random.randint(0, 2):
-                vj = 1
-            else:
-                vj = -1
-
+            vj = 1 if np.random.randint(0, 2) else -1
             # recursivly build up tree in that direction
             state_dash = yield from \
                 build_tree(state, vj, j, adaptor,
@@ -450,10 +439,9 @@ def nuts_sampler(x0, delta, num_adaption_steps, sigma0,
         L = state.L
         grad_L = state.grad_L
 
-        # adapt epsilon and mass matrix using dual averaging
-        restart_stepsize_adapt = \
-            adaptor.step(state.theta, state.alpha / state.n_alpha)
-        if restart_stepsize_adapt:
+        if restart_stepsize_adapt := adaptor.step(
+            state.theta, state.alpha / state.n_alpha
+        ):
             epsilon = yield from \
                 find_reasonable_epsilon(theta, L, grad_L,
                                         adaptor.get_inv_mass_matrix())
@@ -699,50 +687,47 @@ class NoUTurnMCMC(pints.SingleChainMCMC):
         # return value is the next theta to evaluate at
         self._next = self._nuts.send(reply)
 
-        # coroutine signals end of current step by sending a tuple of
-        # information about the last mcmc step
-        if isinstance(self._next, tuple):
-            # extract next point in chain, its logpdf, the acceptance
-            # probability and the number of leapfrog steps taken during
-            # the last mcmc step
-            self._current = self._next[0]
-            current_logpdf = self._next[1]
-            current_gradient = self._next[2]
-            current_acceptance = self._next[3]
-            current_n_leapfrog = self._next[4]
-            divergent = self._next[5]
-
-            # Increase iteration count
-            self._mcmc_iteration += 1
-
-            # average quantities for logging
-            n_it_since_log = self._mcmc_iteration - self._last_log_write
-            self._mcmc_acceptance = (
-                (n_it_since_log * self._mcmc_acceptance + current_acceptance) /
-                (n_it_since_log + 1)
-            )
-            self._n_leapfrog = (
-                (n_it_since_log * self._n_leapfrog + current_n_leapfrog) /
-                (n_it_since_log + 1)
-            )
-
-            # store divergent iterations
-            if divergent:
-                self._divergent = np.append(
-                    self._divergent, self._mcmc_iteration)
-
-            # request next point to evaluate
-            self._next = next(self._nuts)
-
-            # Return current position as next sample in the chain
-            return (
-                np.copy(self._current),
-                (current_logpdf, np.copy(current_gradient)),
-                True
-            )
-        else:
+        if not isinstance(self._next, tuple):
             # Return None to indicate there is no new sample for the chain
             return None
+        # extract next point in chain, its logpdf, the acceptance
+        # probability and the number of leapfrog steps taken during
+        # the last mcmc step
+        self._current = self._next[0]
+        current_logpdf = self._next[1]
+        current_gradient = self._next[2]
+        current_acceptance = self._next[3]
+        current_n_leapfrog = self._next[4]
+        divergent = self._next[5]
+
+        # Increase iteration count
+        self._mcmc_iteration += 1
+
+        # average quantities for logging
+        n_it_since_log = self._mcmc_iteration - self._last_log_write
+        self._mcmc_acceptance = (
+            (n_it_since_log * self._mcmc_acceptance + current_acceptance) /
+            (n_it_since_log + 1)
+        )
+        self._n_leapfrog = (
+            (n_it_since_log * self._n_leapfrog + current_n_leapfrog) /
+            (n_it_since_log + 1)
+        )
+
+        # store divergent iterations
+        if divergent:
+            self._divergent = np.append(
+                self._divergent, self._mcmc_iteration)
+
+        # request next point to evaluate
+        self._next = next(self._nuts)
+
+        # Return current position as next sample in the chain
+        return (
+            np.copy(self._current),
+            (current_logpdf, np.copy(current_gradient)),
+            True
+        )
 
     def use_dense_mass_matrix(self):
         """

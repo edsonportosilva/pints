@@ -297,7 +297,7 @@ class PooledLogPDF(LogPDF):
             # with respect to that parameter.
             total += score
             dtotal[idx * self._n_unpooled: (idx + 1) * self._n_unpooled] = \
-                partials[~self._pooled]
+                    partials[~self._pooled]
             if self._n_pooled > 0:
                 dtotal[-self._n_pooled:] += partials[self._pooled]
 
@@ -467,10 +467,7 @@ class SumOfIndependentLogPDFs(LogPDF):
                     ' SumOfIndependentLogPDFs must have same dimension.')
 
     def __call__(self, x):
-        total = 0
-        for e in self._log_likelihoods:
-            total += e(x)
-        return total
+        return sum(e(x) for e in self._log_likelihoods)
 
     def evaluateS1(self, x):
         """

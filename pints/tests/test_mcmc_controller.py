@@ -245,7 +245,7 @@ class TestMCMCController(unittest.TestCase):
         # Set up problem for 10 chains
         x0 = np.array(self.real_parameters)
         xs = []
-        for i in range(10):
+        for _ in range(10):
             f = 0.9 + 0.2 * np.random.rand()
             xs.append(x0 * f)
         n_chains = len(xs)
@@ -266,7 +266,7 @@ class TestMCMCController(unittest.TestCase):
         # Set up problem for 10 chains
         x0 = np.array(self.real_parameters)
         xs = []
-        for i in range(10):
+        for _ in range(10):
             f = 0.9 + 0.2 * np.random.rand()
             xs.append(x0 * f)
         n_chains = len(xs)
@@ -386,7 +386,7 @@ class TestMCMCController(unittest.TestCase):
         # Test running MCMC with parallisation.
 
         xs = []
-        for i in range(10):
+        for _ in range(10):
             f = 0.9 + 0.2 * np.random.rand()
             xs.append(np.array(self.real_parameters) * f)
         nchains = len(xs)
@@ -429,7 +429,7 @@ class TestMCMCController(unittest.TestCase):
 
         np.random.seed(1)
         xs = []
-        for i in range(3):
+        for _ in range(3):
             f = 0.9 + 0.2 * np.random.rand()
             xs.append(np.array(self.real_parameters) * f)
         nchains = len(xs)
@@ -781,7 +781,7 @@ class TestMCMCControllerLogging(unittest.TestCase):
         # Generate some random starting points
         np.random.seed(1)
         cls.xs = []
-        for i in range(3):
+        for _ in range(3):
             f = 0.9 + 0.2 * np.random.rand()
             cls.xs.append(np.array(cls.real_parameters) * f)
         cls.nchains = len(cls.xs)
@@ -1331,10 +1331,11 @@ class TestMCMCControllerLogging(unittest.TestCase):
 
                 # Test eval files contain the correct values
                 evals2 = np.array(io.load_samples(epath, self.nchains))
-                evals1 = []
-                for chain in chains1:
-                    evals1.append(
-                        np.array([self.log_likelihood(x) for x in chain]).T)
+                evals1 = [
+                    np.array([self.log_likelihood(x) for x in chain]).T
+                    for chain in chains1
+                ]
+
                 evals1 = np.array(evals1).reshape(3, 20, 1)
                 self.assertTrue(np.all(evals1 == evals2))
 

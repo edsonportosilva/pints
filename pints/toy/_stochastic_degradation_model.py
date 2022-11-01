@@ -128,9 +128,7 @@ class StochasticDegradationModel(pints.ForwardModel, ToyModel):
         # run Gillespie
         time, mol_count = self.simulate_raw(parameters)
 
-        # interpolate
-        values = self.interpolate_mol_counts(time, mol_count, times)
-        return values
+        return self.interpolate_mol_counts(time, mol_count, times)
 
     def mean(self, parameters, times):
         r"""
@@ -149,8 +147,7 @@ class StochasticDegradationModel(pints.ForwardModel, ToyModel):
         if np.any(times < 0):
             raise ValueError('Negative times are not allowed.')
 
-        mean = self._n0 * np.exp(-k * times)
-        return mean
+        return self._n0 * np.exp(-k * times)
 
     def variance(self, parameters, times):
         r"""
@@ -169,8 +166,7 @@ class StochasticDegradationModel(pints.ForwardModel, ToyModel):
         if np.any(times < 0):
             raise ValueError('Negative times are not allowed.')
 
-        variance = np.exp(-2 * k * times) * (-1 + np.exp(k * times)) * self._n0
-        return variance
+        return np.exp(-2 * k * times) * (-1 + np.exp(k * times)) * self._n0
 
     def suggested_parameters(self):
         """ See :meth:`pints.toy.ToyModel.suggested_parameters()`. """

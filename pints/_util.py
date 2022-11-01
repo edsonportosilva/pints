@@ -41,9 +41,9 @@ class Timer(object):
         if time is None:
             time = self.time()
         if time < 1e-2:
-            return str(time) + ' seconds'
+            return f'{str(time)} seconds'
         elif time < 60:
-            return str(round(time, 2)) + ' seconds'
+            return f'{str(round(time, 2))} seconds'
         output = []
         time = int(round(time))
         units = [
@@ -55,9 +55,9 @@ class Timer(object):
         for k, name in units:
             f = time // k
             if f > 0 or output:
-                output.append(str(f) + ' ' + (name if f == 1 else name + 's'))
+                output.append(f'{str(f)} ' + (name if f == 1 else f'{name}s'))
             time -= f * k
-        output.append('1 second' if time == 1 else str(time) + ' seconds')
+        output.append('1 second' if time == 1 else f'{str(time)} seconds')
         return ', '.join(output)
 
     def reset(self):

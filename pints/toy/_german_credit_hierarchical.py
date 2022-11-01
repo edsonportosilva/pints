@@ -53,18 +53,17 @@ class GermanCreditHierarchicalLogPDF(ToyLogPDF):
                 raise ValueError('No data supplied. Consider setting download'
                                  ' to True to download data.')
             x, y = self._download_data()
-            dims = x.shape[1]
         else:
             if download is True:
                 raise ValueError(
                     'Either supply no data or set download to True to download'
                     ' data, but not both.')
-            dims = x.shape[1]
-            if dims != 25:
+            if x.shape[1] != 25:
                 raise ValueError('x must have 25 predictor columns.')
             if max(y) != 1 or min(y) != -1:
                 raise ValueError('Output must be either 1 or -1.')
 
+        dims = x.shape[1]
         # make design matrix
         self._x = np.copy(x)
         x = x[:, 1:]
@@ -91,8 +90,8 @@ class GermanCreditHierarchicalLogPDF(ToyLogPDF):
         sigma_sq = sigma**2
         log_prob = sum(-np.log(1 + np.exp(-self._y * np.dot(self._z, beta))))
         log_prob += -1 / (2 * sigma_sq) * np.dot(beta, beta) \
-                    - self._N / 2 * np.log(sigma) \
-                    - self._lambda * sigma_sq
+                        - self._N / 2 * np.log(sigma) \
+                        - self._lambda * sigma_sq
         return log_prob
 
     def data(self):

@@ -80,11 +80,10 @@ class NealsFunnelLogPDF(ToyLogPDF):
         of Neal's funnel from the analytic :math:`\mathcal{N}(0, 3)` result.
         """
         # Check size of input
-        if not len(samples.shape) == 2:
+        if len(samples.shape) != 2:
             raise ValueError('Given samples list must be n x 2.')
         if samples.shape[1] != self._n_parameters:
-            raise ValueError(
-                'Given samples must have length ' + str(self._n_parameters))
+            raise ValueError(f'Given samples must have length {str(self._n_parameters)}')
         nu = samples[:, self._n_parameters - 1]
         m0 = np.mean(nu)
         s0 = np.var(nu)

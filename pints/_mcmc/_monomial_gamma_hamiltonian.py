@@ -233,8 +233,7 @@ class MonomialGammaHamiltonianMCMC(pints.SingleChainMCMC):
         """
         p = np.linspace(-pmax, pmax, 1000)
         lcdf = [self._cdf(p[i], a, c, m, z) for i in range(1000)]
-        f = interpolate.interp1d(lcdf, p, fill_value="extrapolate")
-        return f
+        return interpolate.interp1d(lcdf, p, fill_value="extrapolate")
 
     def _K(self, v_p, a, c, m):
         """
@@ -393,7 +392,7 @@ class MonomialGammaHamiltonianMCMC(pints.SingleChainMCMC):
             )
         if len(a) == 1:
             step_size = np.repeat(step_size, self._n_parameters)
-        elif not len(step_size) == self._n_parameters:
+        elif len(step_size) != self._n_parameters:
             raise ValueError(
                 'Step size should either be of length 1 or equal to the' +
                 'number of parameters'

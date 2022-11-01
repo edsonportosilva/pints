@@ -101,10 +101,11 @@ class SliceRankShrinkingMCMC(pints.SingleChainMCMC):
     # Function returning the component of vector v orthogonal to the
     # columns of J
     def _p(self, J, v):
-        if not J.any():
-            return np.array(v, copy=True)
-        else:
-            return np.array(v - np.dot(J, np.dot(J.transpose(), v)), copy=True)
+        return (
+            np.array(v - np.dot(J, np.dot(J.transpose(), v)), copy=True)
+            if J.any()
+            else np.array(v, copy=True)
+        )
 
     def ask(self):
         """ See :meth:`SingleChainMCMC.ask()`. """

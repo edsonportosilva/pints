@@ -36,7 +36,7 @@ class TestNutsMCMC(unittest.TestCase):
         logger.set_stream(None)
         mcmc._log_init(logger)
         chain = []
-        for i in range(2 * mcmc.number_adaption_steps()):
+        for _ in range(2 * mcmc.number_adaption_steps()):
             x = mcmc.ask()
             fx, gr = log_pdf.evaluateS1(x)
             reply = mcmc.tell((fx, gr))
@@ -65,7 +65,7 @@ class TestNutsMCMC(unittest.TestCase):
 
         # Perform short run
         chain = []
-        for i in range(2 * mcmc.number_adaption_steps()):
+        for _ in range(2 * mcmc.number_adaption_steps()):
             x = mcmc.ask()
             fx, gr = log_pdf.evaluateS1(x)
             reply = mcmc.tell((fx, gr))
@@ -125,7 +125,7 @@ class TestNutsMCMC(unittest.TestCase):
 
         # Perform short run
         chain = []
-        for i in range(2 * mcmc.number_adaption_steps()):
+        for _ in range(2 * mcmc.number_adaption_steps()):
             x = mcmc.ask()
             fx, gr = log_pdf.evaluateS1(x)
             reply = mcmc.tell((fx, gr))

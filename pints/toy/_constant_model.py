@@ -79,7 +79,7 @@ class ConstantModel(pints.ForwardModelS1):
         if np.any(times < 0):
             raise ValueError('Negative times are not allowed.')
         if len(parameters) != self._n:
-            raise ValueError('Expected ' + str(self._n) + ' parameters.')
+            raise ValueError(f'Expected {str(self._n)} parameters.')
         if not np.all(np.isfinite(parameters)):
             raise ValueError('All parameters must be finite.')
 
